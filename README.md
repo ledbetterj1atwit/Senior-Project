@@ -4,7 +4,7 @@ Aggregated Penetration Testing is a Windows tool for automating penetration test
 Directories
 - Docs: Documentation and project documents.
 - App: The desktop application.
--Wee Woo Wee woo
+- Wee Woo Wee woo
 ### Signatures
 - Jacob Ledbetter
 - Daniel Sheil
