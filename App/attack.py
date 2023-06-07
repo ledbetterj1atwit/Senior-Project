@@ -1,26 +1,30 @@
 """
-Meta
+File for handling atk files.
+Meta: Metadata for the atk
   Name: str
   Author: str
-  Version: str
-  ProgramVersion: str
-Script
+  Version: str the version of this atk
+  ProgramVersion: str the version of the program that made the atk
+Script: What to execute.
   Section
-    Name: str
+    Name: str Name of section for readability.
+    ID: int The real identifier.
+    Type: str How to handle content(Embedded or Reference)
+    Content: str
+  Requires: [str] List of executables needed to run the script.
+Output: Output of each Script section(optional)
+  Section
     ID: int
-    Type: str
     Content: str
-  Requires: [str]
-Output
+Document: How to generate the document.
   Section
-    ID: int
+    Name: str Name of section, for readability.
+    ID: str The real identifier.
+    Type: str How to handle content(of section)
     Content: str
-Document
-  Section
-    Name: str
-    ID: str
-    Type: str
-    Content: str
+    Pattern: Patterns for setting content from output.
+      pattern_str: str The regex pattern to match.
+      match_content: str the content to use if matched.
 """
 import typing
 # from typing_extensions import Self
@@ -64,39 +68,71 @@ class SectionScript(SectionBase):
         return cls(in_dict["id"], in_dict["name"], in_dict["type"], in_dict["content"])
 
 
-class SectionDocument(SectionBase):
-    def __init__(self, section_id: int, name: str, section_type: str, content: str):
-        super().__init__(section_id, content)
-        self.name = name
-        self.section_type = section_type
+class Pattern:
+    def __init__(self, pattern_str: str, match_content: str):
+        self.pattern_str = pattern_str
+        self.match_content = match_content
 
     def to_dict(self) -> dict:
-        return super().to_dict() | {"name": self.name, "type": self.section_type}
-
-    @classmethod
-    def from_dict(cls, in_dict: dict):
-        return cls(in_dict["id"], in_dict["name"], in_dict["type"], in_dict["content"])
-
-
-class Document:
-    def __init__(self, sections: list[SectionDocument]):
-        self.sections = sections
-
-    def to_dict(self) -> dict:
-        dict_sections = []
-        for section in self.sections:
-            dict_sections.append(section.to_dict())
-        return {"document": {"sections": dict_sections}}
+        return {"pattern": self.pattern_str, "match_content": self.match_content}
 
     def to_json(self) -> str:
         return json.dumps(self.to_dict())
 
     @classmethod
+    def from_dict(cls, in_dict):
+        return cls(in_dict["pattern"], in_dict["match_content"])
+
+    @classmethod
+    def from_json(cls, json_str):
+        return cls.from_dict(json.loads(json_str))
+
+
+class SectionDocument(SectionBase):
+    def __init__(self, section_id: int, name: str, section_type: str, content: str, patterns: list[Pattern]):
+        super().__init__(section_id, content)
+        self.name = name
+        self.section_type = section_type
+        self.patterns = patterns
+
+    def to_dict(self) -> dict:
+        patterns = []
+        for pattern in self.patterns:
+            patterns.append(pattern.to_dict())
+        return super().to_dict() | {"name": self.name, "type": self.section_type, "patterns": patterns}
+
+    @classmethod
     def from_dict(cls, in_dict: dict):
-        imported_sections = []
-        for section in in_dict["document"]["sections"]:
-            imported_sections.append(SectionDocument.from_dict(section))
-        return cls(imported_sections)
+        patterns = []
+        for pattern_dict in in_dict["patterns"]:
+            patterns.append(Pattern.from_dict(pattern_dict))
+        return cls(in_dict["id"], in_dict["name"], in_dict["type"], in_dict["content"], patterns)
+
+
+class Meta:
+    def __init__(self, name: str, author: str, version: str = "0.0.0", program_version: str = "0.0.0"):
+        self.name = name
+        self.author = author
+        self.version = version
+        self.program_version = program_version
+
+    def to_dict(self):
+        return {
+            "meta": {
+                "name": self.name,
+                "author": self.author,
+                "version": self.version,
+                "program_version": self.program_version
+            }
+        }
+
+    def to_json(self):
+        return json.dumps(self.to_dict())
+
+    @classmethod
+    def from_dict(cls, in_dict: dict):
+        return cls(in_dict["meta"]["name"], in_dict["meta"]["author"], in_dict["meta"]["version"],
+                   in_dict["meta"]["program_version"])
 
     @classmethod
     def from_json(cls, json_str: str):
@@ -154,29 +190,25 @@ class Output:
         return cls.from_dict(json.loads(json_str))
 
 
-class Meta:
-    def __init__(self, name: str, author: str, version: str = "0.0.0", program_version: str = "0.0.0"):
-        self.name = name
-        self.author = author
-        self.version = version
-        self.program_version = program_version
+class Document:
+    def __init__(self, sections: list[SectionDocument]):
+        self.sections = sections
 
-    def to_dict(self):
-        return {
-            "meta": {
-                "name": self.name,
-                "author": self.author,
-                "version": self.version,
-                "program_version": self.program_version
-            }
-        }
+    def to_dict(self) -> dict:
+        dict_sections = []
+        for section in self.sections:
+            dict_sections.append(section.to_dict())
+        return {"document": {"sections": dict_sections}}
 
-    def to_json(self):
+    def to_json(self) -> str:
         return json.dumps(self.to_dict())
 
     @classmethod
     def from_dict(cls, in_dict: dict):
-        return cls(in_dict["meta"]["name"], in_dict["meta"]["author"], in_dict["meta"]["version"], in_dict["meta"]["program_version"])
+        imported_sections = []
+        for section in in_dict["document"]["sections"]:
+            imported_sections.append(SectionDocument.from_dict(section))
+        return cls(imported_sections)
 
     @classmethod
     def from_json(cls, json_str: str):
