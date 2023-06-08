@@ -9,7 +9,7 @@ Script: What to execute.
   Section
     Name: str Name of section for readability.
     ID: int The real identifier.
-    Type: str How to handle content(Embedded or Reference)
+    Type: ScriptSectionType How to handle content(Embedded or Reference)
     Content: str
   Requires: [str] List of executables needed to run the script.
 Output: Output of each Script section(optional)
@@ -20,7 +20,7 @@ Document: How to generate the document.
   Section
     Name: str Name of section, for readability.
     ID: str The real identifier.
-    Type: str How to handle content(of section)
+    Type: DocumentSectionType How to handle content(of section)
     Content: str
     Pattern: Patterns for setting content from output.
       pattern_str: str The regex pattern to match.
@@ -29,6 +29,7 @@ Document: How to generate the document.
 import typing
 # from typing_extensions import Self
 import json
+from enum import Enum
 
 
 class SectionBase:
@@ -54,18 +55,32 @@ class SectionBase:
         return cls.from_dict(json.loads(json_str))
 
 
+class ScriptSectionType(Enum):
+    EMPTY = "Empty"
+    EMBEDDED = "Embedded"
+    REFERENCE = "Reference"
+
+
 class SectionScript(SectionBase):
-    def __init__(self, section_id: int, name: str, section_type: str, content: str):
+    def __init__(self, section_id: int, name: str, section_type: ScriptSectionType, content: str):
         super().__init__(section_id, content)
         self.name = name
         self.section_type = section_type
 
     def to_dict(self) -> dict:
-        return super().to_dict() | {"name": self.name, "type": self.section_type}
+        return super().to_dict() | {"name": self.name, "type": self.section_type.value}
 
     @classmethod
     def from_dict(cls, in_dict: dict):
-        return cls(in_dict["id"], in_dict["name"], in_dict["type"], in_dict["content"])
+        return cls(in_dict["id"], in_dict["name"], ScriptSectionType(in_dict["type"]), in_dict["content"])
+
+
+class DocumentSectionType(Enum):
+    EMPTY = "Empty"
+    LITERAL = "Literal"
+    REFERENCE = "Reference"
+    PATTERN = "Pattern"
+    COMBINED = "Combined"
 
 
 class Pattern:
@@ -89,7 +104,8 @@ class Pattern:
 
 
 class SectionDocument(SectionBase):
-    def __init__(self, section_id: int, name: str, section_type: str, content: str, patterns: list[Pattern]):
+    def __init__(self, section_id: int, name: str, section_type: DocumentSectionType, content: str,
+                 patterns: list[Pattern]):
         super().__init__(section_id, content)
         self.name = name
         self.section_type = section_type
@@ -99,14 +115,14 @@ class SectionDocument(SectionBase):
         patterns = []
         for pattern in self.patterns:
             patterns.append(pattern.to_dict())
-        return super().to_dict() | {"name": self.name, "type": self.section_type, "patterns": patterns}
+        return super().to_dict() | {"name": self.name, "type": self.section_type.value, "patterns": patterns}
 
     @classmethod
     def from_dict(cls, in_dict: dict):
         patterns = []
         for pattern_dict in in_dict["patterns"]:
             patterns.append(Pattern.from_dict(pattern_dict))
-        return cls(in_dict["id"], in_dict["name"], in_dict["type"], in_dict["content"], patterns)
+        return cls(in_dict["id"], in_dict["name"], DocumentSectionType(in_dict["type"]), in_dict["content"], patterns)
 
 
 class Meta:
@@ -269,4 +285,5 @@ class Attack:
 if __name__ == "__main__":
     # For testing
     attack_obj_from_file = Attack.load("tmp.atk")
+    attack_obj_from_file.save("tmp1.atk")
     print("done")
