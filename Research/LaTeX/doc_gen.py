@@ -10,8 +10,8 @@ if __name__ == "__main__":
     document = pylatex.Document()
     with document.create(pylatex.Section("Section One")):
         document.append(pylatex.MediumText("Hello, world."))
-        document.append("Im going to kill someone\n")
-        document.append("This took a fucking HOUR!!!")
+        document.append("Im going to **** someone\n")
+        document.append("This took an HOUR!!!")
     with document.create(pylatex.Section("Section Two")):
         document.append("Im getting lunch...")
 
