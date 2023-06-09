@@ -25,12 +25,13 @@ Document: How to generate the document.
     Pattern: Patterns for setting content from output.
       pattern_str: str The regex pattern to match.
       match_content: str the content to use if matched.
+Variables: dict Key Value pairs to pass into script sections.
+  If there is a key with no value("") then ask user for this.
 """
 import typing
 # from typing_extensions import Self
 import json
 from enum import Enum
-
 
 class SectionBase:
     def __init__(self, section_id: int, content: str):
@@ -232,14 +233,15 @@ class Document:
 
 
 class Attack:
-    def __init__(self, meta: Meta, script: Script, document: Document, output: Output = None):
+    def __init__(self, meta: Meta, script: Script, document: Document, variables: dict, output: Output = None):
         self.meta = meta
         self.script = script
         self.output = output
         self.document = document
+        self.variables = variables
 
     def to_dict(self):
-        final = {} | self.meta.to_dict() | self.script.to_dict() | self.document.to_dict()
+        final = {} | self.meta.to_dict() | self.script.to_dict() | self.document.to_dict() | {"variables": self.variables}
         if self.output is not None:
             final = final | self.output.to_dict()
         return final
@@ -262,13 +264,15 @@ class Attack:
             return cls(
                 Meta.from_dict({"meta": in_dict["meta"]}),
                 Script.from_dict({"script": in_dict["script"]}),
-                Document.from_dict({"document": in_dict["document"]})
+                Document.from_dict({"document": in_dict["document"]}),
+                in_dict["variables"]
             )
         else:
             return cls(
                 Meta.from_dict({"meta": in_dict["meta"]}),
                 Script.from_dict({"script": in_dict["script"]}),
                 Document.from_dict({"document": in_dict["document"]}),
+                in_dict["variables"],
                 Output.from_dict(output)
             )
 
