@@ -33,6 +33,7 @@ import typing
 import json
 from enum import Enum
 
+
 class SectionBase:
     def __init__(self, section_id: int, content: str):
         self.section_id = section_id
@@ -241,7 +242,8 @@ class Attack:
         self.variables = variables
 
     def to_dict(self):
-        final = {} | self.meta.to_dict() | self.script.to_dict() | self.document.to_dict() | {"variables": self.variables}
+        final = {} | self.meta.to_dict() | self.script.to_dict() | self.document.to_dict() | {
+            "variables": self.variables}
         if self.output is not None:
             final = final | self.output.to_dict()
         return final
