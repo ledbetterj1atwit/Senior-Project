@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>APT</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -535,8 +535,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>180</width>
-                <height>365</height>
+                <width>98</width>
+                <height>91</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -790,7 +790,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>567</width>
+                <width>192</width>
                 <height>777</height>
                </rect>
               </property>
@@ -808,7 +808,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                <item>
                 <widget class="QLabel" name="label_17">
                  <property name="text">
-                  <string>current pattern</string>
+                  <string>Current Pattern</string>
                  </property>
                 </widget>
                </item>
@@ -818,7 +818,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                <item>
                 <widget class="QLabel" name="label_18">
                  <property name="text">
-                  <string>regular expression</string>
+                  <string>Regular Expression</string>
                  </property>
                 </widget>
                </item>
@@ -828,7 +828,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                <item>
                 <widget class="QLabel" name="label_19">
                  <property name="text">
-                  <string>behavior when matched</string>
+                  <string>Behavior When Matched</string>
                  </property>
                 </widget>
                </item>
@@ -999,7 +999,7 @@ lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlo
            <item>
             <widget class="QLabel" name="program_statusline">
              <property name="text">
-              <string>status line</string>
+              <string>statusline</string>
              </property>
             </widget>
            </item>
@@ -1039,8 +1039,8 @@ lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlo
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>180</width>
-                <height>413</height>
+                <width>98</width>
+                <height>91</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_12">

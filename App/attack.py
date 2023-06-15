@@ -58,9 +58,9 @@ class SectionBase:
 
 
 class ScriptSectionType(Enum):
-    EMPTY = "Empty"
-    EMBEDDED = "Embedded"
-    REFERENCE = "Reference"
+    EMPTY = "Empty"  # Script has no content.
+    EMBEDDED = "Embedded"  # Run content directly.
+    REFERENCE = "Reference"  # Content is a reference to a bash/batch script.
 
 
 class SectionScript(SectionBase):
@@ -78,27 +78,36 @@ class SectionScript(SectionBase):
 
 
 class DocumentSectionType(Enum):
-    EMPTY = "Empty"
-    LITERAL = "Literal"
-    REFERENCE = "Reference"
-    PATTERN = "Pattern"
-    COMBINED = "Combined"
+    EMPTY = "Empty"  # Adds nothing to document.
+    LITERAL = "Literal"  # Adds the content directly.
+    REFERENCE = "Reference"  # Content references a .tex file.
+    PATTERN = "Pattern"  # Use pattern rules.
+    COMBINED = "Combined"  # Use a mix of the above.
+
+
+class PatternBehavior(Enum):
+    REPLACE = "Replace"  # Replace content with match content.
+    ADD = "Add"  # Add match content after match.
+    REMOVE = "Remove"  # Remove content on match.
+    END = "End"  # Exit document generation early.
+    ERROR = "Error"  # Prevent the document from generating.
 
 
 class Pattern:
-    def __init__(self, pattern_str: str, match_content: str):
+    def __init__(self, pattern_str: str, match_content: str, behavior: PatternBehavior):
         self.pattern_str = pattern_str
         self.match_content = match_content
+        self.behavior = behavior
 
     def to_dict(self) -> dict:
-        return {"pattern": self.pattern_str, "match_content": self.match_content}
+        return {"pattern": self.pattern_str, "match_content": self.match_content, "behavior": self.behavior.value}
 
     def to_json(self) -> str:
         return json.dumps(self.to_dict())
 
     @classmethod
     def from_dict(cls, in_dict):
-        return cls(in_dict["pattern"], in_dict["match_content"])
+        return cls(in_dict["pattern"], in_dict["match_content"], PatternBehavior(in_dict["behavior"]))
 
     @classmethod
     def from_json(cls, json_str):
