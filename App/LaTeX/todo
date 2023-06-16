@@ -1,0 +1,4 @@
+need pdflatex.exe since expecting a user to install a tex distrib is f insane
+https://pypi.org/project/pdflatex/
+https://ctan.ijs.si/mirror/w32tex/current/ pdftex-w32 web2c-w32 web2c-lib latex
+C:\Program Files\MiKTeX 2.9\miktex\bin
