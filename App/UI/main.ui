@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>APT</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../icon.png</normaloff>../icon.png</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_5">
     <item>
@@ -37,7 +41,10 @@
            <item>
             <widget class="QLabel" name="label_15">
              <property name="text">
-              <string>Sections</string>
+              <string>&amp;Sections</string>
+             </property>
+             <property name="buddy">
+              <cstring>listWidget</cstring>
              </property>
             </widget>
            </item>
@@ -67,201 +74,6 @@
                  <property name="selectionRectVisible">
                   <bool>true</bool>
                  </property>
-                 <item>
-                  <property name="text">
-                   <string>Demo Sections</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
                 </widget>
                </item>
               </layout>
@@ -309,10 +121,13 @@
             <item>
              <widget class="QLabel" name="label">
               <property name="text">
-               <string>Variables</string>
+               <string>&amp;Variables</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
+              </property>
+              <property name="buddy">
+               <cstring>tableWidget</cstring>
               </property>
              </widget>
             </item>
@@ -342,26 +157,6 @@
               <attribute name="verticalHeaderVisible">
                <bool>false</bool>
               </attribute>
-              <row>
-               <property name="text">
-                <string>New Row</string>
-               </property>
-              </row>
-              <row>
-               <property name="text">
-                <string>New Row</string>
-               </property>
-              </row>
-              <row>
-               <property name="text">
-                <string>New Row</string>
-               </property>
-              </row>
-              <row>
-               <property name="text">
-                <string>New Row</string>
-               </property>
-              </row>
               <column>
                <property name="text">
                 <string>Name</string>
@@ -372,46 +167,6 @@
                 <string>Value</string>
                </property>
               </column>
-              <item row="0" column="0">
-               <property name="text">
-                <string>ip</string>
-               </property>
-              </item>
-              <item row="0" column="1">
-               <property name="text">
-                <string>12.0.0.1</string>
-               </property>
-              </item>
-              <item row="1" column="0">
-               <property name="text">
-                <string>ports</string>
-               </property>
-              </item>
-              <item row="1" column="1">
-               <property name="text">
-                <string>80:8080:1337</string>
-               </property>
-              </item>
-              <item row="2" column="0">
-               <property name="text">
-                <string>message</string>
-               </property>
-              </item>
-              <item row="2" column="1">
-               <property name="text">
-                <string>404: Not Found</string>
-               </property>
-              </item>
-              <item row="3" column="0">
-               <property name="text">
-                <string>sample</string>
-               </property>
-              </item>
-              <item row="3" column="1">
-               <property name="text">
-                <string>text</string>
-               </property>
-              </item>
              </widget>
             </item>
             <item>
@@ -444,7 +199,10 @@
             <item>
              <widget class="QLabel" name="label_3">
               <property name="text">
-               <string>Section Type</string>
+               <string>Section &amp;Type</string>
+              </property>
+              <property name="buddy">
+               <cstring>section_type_contents</cstring>
               </property>
              </widget>
             </item>
@@ -470,7 +228,10 @@
             <item>
              <widget class="QLabel" name="label_11">
               <property name="text">
-               <string>Section Name</string>
+               <string>Section &amp;Name</string>
+              </property>
+              <property name="buddy">
+               <cstring>lineEdit</cstring>
               </property>
              </widget>
             </item>
@@ -487,10 +248,13 @@
             <item>
              <widget class="QLabel" name="label_2">
               <property name="text">
-               <string>Content</string>
+               <string>&amp;Content</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
+              </property>
+              <property name="buddy">
+               <cstring>section_content</cstring>
               </property>
              </widget>
             </item>
@@ -561,20 +325,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
               <bool>true</bool>
              </property>
              <property name="plainText">
-              <string>Script output will go here
-
-lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum
-lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum
-lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum
-lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum
-lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum
-lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum
-lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum
-lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum
-lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum
-lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum
-lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum
-lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum
+              <string>Script output
 </string>
              </property>
              <property name="overwriteMode">
@@ -655,206 +406,6 @@ lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlo
                  <property name="selectionMode">
                   <enum>QAbstractItemView::ExtendedSelection</enum>
                  </property>
-                 <item>
-                  <property name="text">
-                   <string>Demo Sections</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>New Item</string>
-                  </property>
-                 </item>
                 </widget>
                </item>
               </layout>
@@ -896,8 +447,8 @@ lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlo
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>-391</y>
-                <width>567</width>
+                <y>-4</y>
+                <width>701</width>
                 <height>826</height>
                </rect>
               </property>
@@ -1127,7 +678,10 @@ li.checked::marker { content: &quot;\2612&quot;; }
               <item>
                <widget class="QLabel" name="label_13">
                 <property name="text">
-                 <string>Sections</string>
+                 <string>&amp;Sections</string>
+                </property>
+                <property name="buddy">
+                 <cstring>listWidget_3</cstring>
                 </property>
                </widget>
               </item>
@@ -1151,211 +705,6 @@ li.checked::marker { content: &quot;\2612&quot;; }
                     <property name="alternatingRowColors">
                      <bool>true</bool>
                     </property>
-                    <item>
-                     <property name="text">
-                      <string>Demo Sections</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
-                    <item>
-                     <property name="text">
-                      <string>New Item</string>
-                     </property>
-                    </item>
                    </widget>
                   </item>
                  </layout>
@@ -1377,7 +726,10 @@ li.checked::marker { content: &quot;\2612&quot;; }
               <item>
                <widget class="QLabel" name="label_7">
                 <property name="text">
-                 <string>LaTeX quick edit</string>
+                 <string>LaTeX &amp;quick edit</string>
+                </property>
+                <property name="buddy">
+                 <cstring>textEdit</cstring>
                 </property>
                </widget>
               </item>
@@ -1408,7 +760,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                  <item>
                   <widget class="QPushButton" name="pushButton_6">
                    <property name="text">
-                    <string>Generate Document</string>
+                    <string>&amp;Generate Document</string>
                    </property>
                   </widget>
                  </item>
@@ -1424,7 +776,10 @@ li.checked::marker { content: &quot;\2612&quot;; }
               <item>
                <widget class="QLabel" name="label_10">
                 <property name="text">
-                 <string>Document Preview</string>
+                 <string>Document &amp;Preview</string>
+                </property>
+                <property name="buddy">
+                 <cstring>graphicsView</cstring>
                 </property>
                </widget>
               </item>
@@ -1493,8 +848,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <addaction name="actionSave"/>
     <addaction name="actionSave_As"/>
     <addaction name="separator"/>
-    <addaction name="actionRun_Attack_F5"/>
-    <addaction name="actionGenerate_Doc_F6"/>
+    <addaction name="actionRun_Attack"/>
+    <addaction name="actionGenerate_Doc"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1526,12 +881,12 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <string>Save As...(Ctrl+Shift+S)</string>
    </property>
   </action>
-  <action name="actionRun_Attack_F5">
+  <action name="actionRun_Attack">
    <property name="text">
     <string>Run Attack(F5)</string>
    </property>
   </action>
-  <action name="actionGenerate_Doc_F6">
+  <action name="actionGenerate_Doc">
    <property name="text">
     <string>Generate Doc(F6)</string>
    </property>
@@ -1542,6 +897,46 @@ li.checked::marker { content: &quot;\2612&quot;; }
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>scrollArea</tabstop>
+  <tabstop>listWidget</tabstop>
+  <tabstop>pushButton</tabstop>
+  <tabstop>pushButton_2</tabstop>
+  <tabstop>scrollArea_3</tabstop>
+  <tabstop>tableWidget</tabstop>
+  <tabstop>var_add</tabstop>
+  <tabstop>var_remove</tabstop>
+  <tabstop>section_type_contents</tabstop>
+  <tabstop>lineEdit</tabstop>
+  <tabstop>section_content</tabstop>
+  <tabstop>run_attack_2</tabstop>
+  <tabstop>stop_attack</tabstop>
+  <tabstop>pause_attack</tabstop>
+  <tabstop>script_out</tabstop>
+  <tabstop>listWidget_2</tabstop>
+  <tabstop>scrollArea_2</tabstop>
+  <tabstop>pushButton_3</tabstop>
+  <tabstop>pushButton_4</tabstop>
+  <tabstop>scrollArea_5</tabstop>
+  <tabstop>pattern_select</tabstop>
+  <tabstop>pattern_regex</tabstop>
+  <tabstop>lineEdit_3</tabstop>
+  <tabstop>pattern_behavior</tabstop>
+  <tabstop>pattern_add</tabstop>
+  <tabstop>pattern_remove</tabstop>
+  <tabstop>section_type_contents_3</tabstop>
+  <tabstop>lineEdit_2</tabstop>
+  <tabstop>section_content_3</tabstop>
+  <tabstop>listWidget_3</tabstop>
+  <tabstop>scrollArea_6</tabstop>
+  <tabstop>textEdit</tabstop>
+  <tabstop>pushButton_5</tabstop>
+  <tabstop>pushButton_6</tabstop>
+  <tabstop>graphicsView</tabstop>
+  <tabstop>prev_page</tabstop>
+  <tabstop>next_page</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
