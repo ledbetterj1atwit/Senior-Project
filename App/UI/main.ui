@@ -44,7 +44,7 @@
               <string>&amp;Sections</string>
              </property>
              <property name="buddy">
-              <cstring>listWidget</cstring>
+              <cstring>script_section_list</cstring>
              </property>
             </widget>
            </item>
@@ -64,7 +64,7 @@
               </property>
               <layout class="QVBoxLayout" name="verticalLayout">
                <item>
-                <widget class="QListWidget" name="listWidget">
+                <widget class="QListWidget" name="script_section_list">
                  <property name="alternatingRowColors">
                   <bool>true</bool>
                  </property>
@@ -84,7 +84,7 @@
             <widget class="QWidget" name="add_remove_section_widget" native="true">
              <layout class="QHBoxLayout" name="horizontalLayout_3">
               <item>
-               <widget class="QPushButton" name="pushButton">
+               <widget class="QPushButton" name="script_section_add">
                 <property name="text">
                  <string>+</string>
                 </property>
@@ -399,7 +399,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_4">
                <item>
-                <widget class="QListWidget" name="listWidget_2">
+                <widget class="QListWidget" name="document_section_list">
                  <property name="alternatingRowColors">
                   <bool>true</bool>
                  </property>
@@ -447,7 +447,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>-4</y>
+                <y>0</y>
                 <width>701</width>
                 <height>826</height>
                </rect>
@@ -681,7 +681,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                  <string>&amp;Sections</string>
                 </property>
                 <property name="buddy">
-                 <cstring>listWidget_3</cstring>
+                 <cstring>document_generate_section_list</cstring>
                 </property>
                </widget>
               </item>
@@ -701,7 +701,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_12">
                   <item>
-                   <widget class="QListWidget" name="listWidget_3">
+                   <widget class="QListWidget" name="document_generate_section_list">
                     <property name="alternatingRowColors">
                      <bool>true</bool>
                     </property>
@@ -847,6 +847,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
     <addaction name="actionSave_As"/>
+    <addaction name="actionQuit"/>
     <addaction name="separator"/>
     <addaction name="actionRun_Attack"/>
     <addaction name="actionGenerate_Doc"/>
@@ -896,12 +897,17 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <string>Manual(F1)</string>
    </property>
   </action>
+  <action name="actionQuit">
+   <property name="text">
+    <string>Quit(Ctrl+Q)</string>
+   </property>
+  </action>
  </widget>
  <tabstops>
   <tabstop>tabWidget</tabstop>
   <tabstop>scrollArea</tabstop>
-  <tabstop>listWidget</tabstop>
-  <tabstop>pushButton</tabstop>
+  <tabstop>script_section_list</tabstop>
+  <tabstop>script_section_add</tabstop>
   <tabstop>pushButton_2</tabstop>
   <tabstop>scrollArea_3</tabstop>
   <tabstop>tableWidget</tabstop>
@@ -914,7 +920,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <tabstop>stop_attack</tabstop>
   <tabstop>pause_attack</tabstop>
   <tabstop>script_out</tabstop>
-  <tabstop>listWidget_2</tabstop>
+  <tabstop>document_section_list</tabstop>
   <tabstop>scrollArea_2</tabstop>
   <tabstop>pushButton_3</tabstop>
   <tabstop>pushButton_4</tabstop>
@@ -928,7 +934,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <tabstop>section_type_contents_3</tabstop>
   <tabstop>lineEdit_2</tabstop>
   <tabstop>section_content_3</tabstop>
-  <tabstop>listWidget_3</tabstop>
+  <tabstop>document_generate_section_list</tabstop>
   <tabstop>scrollArea_6</tabstop>
   <tabstop>textEdit</tabstop>
   <tabstop>pushButton_5</tabstop>
