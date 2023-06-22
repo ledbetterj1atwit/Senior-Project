@@ -2,15 +2,15 @@ import sys
 import os
 from typing import Optional
 
-from PyQt6 import QtWidgets, uic
+from PyQt6 import uic
 from PyQt6.QtCore import QCoreApplication
-from PyQt6.QtGui import QKeySequence, QAction
-from PyQt6.QtWidgets import QAbstractButton, QListWidgetItem
+from PyQt6.QtGui import QKeySequence
+from PyQt6.QtWidgets import QDialog, QFileDialog, QErrorMessage, QApplication, QMainWindow
 
 import attack
 
 
-class CreateAttackDlg(QtWidgets.QDialog):
+class CreateAttackDlg(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         uic.loadUi("UI/create_attack_dialog.ui", self)
@@ -27,7 +27,7 @@ class CreateAttackDlg(QtWidgets.QDialog):
         super().accept()
 
 
-class AttackUnsavedDlg(QtWidgets.QDialog):
+class AttackUnsavedDlg(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         uic.loadUi("UI/unsaved_dialog.ui", self)
@@ -39,7 +39,7 @@ class AttackUnsavedDlg(QtWidgets.QDialog):
         self.parent().save_attack_as()
 
 
-class MainWindow(QtWidgets.QMainWindow):
+class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Dialogs
@@ -72,10 +72,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.create_dlg.show()
 
     def open_attack(self):
-        new_path = QtWidgets.QFileDialog.getOpenFileName(self,
-                                                         "Open Attack",
-                                                         os.path.expanduser("~"),
-                                                         "Attack Files (*.atk)")[0]
+        new_path = QFileDialog.getOpenFileName(self,
+                                               "Open Attack",
+                                               os.path.expanduser("~"),
+                                               "Attack Files (*.atk)")[0]
         try:
             self.atk = attack.Attack.load(new_path)
             self.atk_path = new_path
@@ -84,10 +84,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.script_section_add_existing(script_section)
             self.setWindowTitle(f"APT - {self.atk.meta.name}")
             self.atk_saved = True
-
-
         except KeyError:
-            err = QtWidgets.QErrorMessage(self)
+            err = QErrorMessage(self)
             err.finished.connect(self.open_attack)
             err.showMessage("Attack was invalid.")
 
@@ -101,10 +99,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.atk_saved = True
 
     def save_attack_as(self):
-        sav = QtWidgets.QFileDialog.getSaveFileName(self,
-                                                    "Save As",
-                                                    f"{os.path.expanduser('~')}\\untitled.atk",
-                                                    "Attack Files(*.atk)")[0]
+        sav = QFileDialog.getSaveFileName(self,
+                                          "Save As",
+                                          f"{os.path.expanduser('~')}\\untitled.atk",
+                                          "Attack Files(*.atk)")[0]
         self.atk_path = sav
         try:
             self.atk.save(sav)
@@ -112,7 +110,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 f"APT - {self.windowTitle().removeprefix('APT - ').removeprefix('*')}")  # Remove unsaved *
             self.atk_saved = True
         except AttributeError:  # No file made.
-            QtWidgets.QErrorMessage(self).showMessage("Please Open or Make an attack first.")
+            QErrorMessage(self).showMessage("Please Open or Make an attack first.")
         except FileNotFoundError:
             pass
 
@@ -125,7 +123,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def script_section_add_new(self):
         if self.atk is None:
-            QtWidgets.QErrorMessage(self).showMessage("Please Open or Make an attack first.")
+            QErrorMessage(self).showMessage("Please Open or Make an attack first.")
             return
         new_id = 0
         try:
@@ -143,10 +141,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.script_section_list.addItem(f"{section.section_id}: {section.name}")
 
     def script_section_remove_selected(self):
-        selected_idxs = [self.script_section_list.row(i) for i in self.script_section_list.selectedItems()]
-        selected_items = [self.script_section_list.takeItem(i) for i in reversed(selected_idxs)]
-        for i in reversed(selected_idxs):
+        selected_indexes = [self.script_section_list.row(i) for i in self.script_section_list.selectedItems()]
+        for i in reversed(selected_indexes):
             self.atk.script.sections.pop(i)
+            self.script_section_list.takeItem(i)
         self.mark_unsaved_changes()
 
     def script_clear(self):
@@ -161,7 +159,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
     app.exec()
