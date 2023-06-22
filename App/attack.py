@@ -299,6 +299,4 @@ class Attack:
 
 if __name__ == "__main__":
     # For testing
-    attack_obj_from_file = Attack.load("tmp.atk")
-    attack_obj_from_file.save("tmp1.atk")
-    print("done")
+    pass
