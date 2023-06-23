@@ -66,6 +66,13 @@ class MainWindow(QMainWindow):
         # Buttons
         self.script_section_add.clicked.connect(self.script_section_add_new)
         self.script_section_remove.clicked.connect(self.script_section_remove_selected)
+        # Combo Boxes
+        self.script_section_type.currentIndexChanged.connect(self.script_update_current)
+        # Text Edits
+        self.script_section_name.textChanged.connect(self.script_update_current)
+        self.script_section_content.textChanged.connect(self.script_update_current)
+        # Item Lists
+        self.script_section_list.itemSelectionChanged.connect(self.script_read_current)
 
     def new_attack(self):
         self.create_dlg = CreateAttackDlg(self)
@@ -141,15 +148,62 @@ class MainWindow(QMainWindow):
         self.script_section_list.addItem(f"{section.section_id}: {section.name}")
 
     def script_section_remove_selected(self):
-        selected_indexes = [self.script_section_list.row(i) for i in self.script_section_list.selectedItems()]
-        for i in reversed(selected_indexes):
-            self.atk.script.sections.pop(i)
-            self.script_section_list.takeItem(i)
-        self.mark_unsaved_changes()
+        try:
+            selected_indexes = [self.script_section_list.row(i) for i in self.script_section_list.selectedItems()]
+            for i in reversed(selected_indexes):
+                self.atk.script.sections.pop(i)
+                self.script_section_list.takeItem(i)
+                self.script_section_list.setCurrentRow(selected_indexes[0]-1)
+                self.mark_unsaved_changes()
+        except IndexError:
+            return
+
+
 
     def script_clear(self):
         for i in reversed(range(self.script_section_list.count())):
             self.script_section_list.takeItem(i)
+
+    def script_update_current(self):
+        current_idx = [self.script_section_list.row(i) for i in self.script_section_list.selectedItems()][0]
+        current: attack.SectionScript = self.atk.script.sections[current_idx]
+        current.name = self.script_section_name.text()
+        self.script_section_list.item(current_idx).setText(f"{current.section_id}: {current.name}")
+        current.content = self.script_section_content.document().toPlainText()
+        if self.script_section_type.currentIndex() == 0:
+            current.section_type = attack.ScriptSectionType.EMPTY
+        elif self.script_section_type.currentIndex() == 1:
+            current.section_type = attack.ScriptSectionType.EMBEDDED
+        elif self.script_section_type.currentIndex() == 2:
+            current.section_type = attack.ScriptSectionType.REFERENCE
+        else:
+            print("*dies cutely in `script_update_current`*")
+        self.mark_unsaved_changes()
+
+    def script_read_current(self):
+        try:
+            current_idx = [self.script_section_list.row(i) for i in self.script_section_list.selectedItems()][0]
+            current: attack.SectionScript = self.atk.script.sections[current_idx]
+            name = current.name
+            content = current.content
+            current_type = current.section_type
+            self.script_section_name.setText(name)
+            self.script_section_content.document().setPlainText(content)
+            if current_type is attack.ScriptSectionType.EMPTY:
+                self.script_section_type.setCurrentIndex(0)
+            elif current_type is attack.ScriptSectionType.EMBEDDED:
+                self.script_section_type.setCurrentIndex(1)
+            elif current_type is attack.ScriptSectionType.REFERENCE:
+                self.script_section_type.setCurrentIndex(2)
+            else:
+                print("*dies cutely in `script_read_current`*")
+            current.name = name
+            current.section_type = current_type
+            current.content = content
+        except IndexError:
+            return
+
+
 
     def app_quit(self):
         if not self.atk_saved:

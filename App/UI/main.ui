@@ -202,12 +202,12 @@
                <string>Section &amp;Type</string>
               </property>
               <property name="buddy">
-               <cstring>section_type_contents</cstring>
+               <cstring>script_section_type</cstring>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="section_type_contents">
+             <widget class="QComboBox" name="script_section_type">
               <item>
                <property name="text">
                 <string>Empty: Do not run this section.</string>
@@ -231,12 +231,12 @@
                <string>Section &amp;Name</string>
               </property>
               <property name="buddy">
-               <cstring>lineEdit</cstring>
+               <cstring>script_section_name</cstring>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="lineEdit"/>
+             <widget class="QLineEdit" name="script_section_name"/>
             </item>
             <item>
              <widget class="Line" name="line_2">
@@ -254,12 +254,12 @@
                <set>Qt::AlignCenter</set>
               </property>
               <property name="buddy">
-               <cstring>section_content</cstring>
+               <cstring>script_section_content</cstring>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QTextEdit" name="section_content">
+             <widget class="QTextEdit" name="script_section_content">
               <property name="minimumSize">
                <size>
                 <width>0</width>
@@ -393,8 +393,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>180</width>
-                <height>365</height>
+                <width>98</width>
+                <height>91</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -695,8 +695,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>180</width>
-                   <height>380</height>
+                   <width>98</width>
+                   <height>91</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -913,9 +913,9 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <tabstop>tableWidget</tabstop>
   <tabstop>var_add</tabstop>
   <tabstop>var_remove</tabstop>
-  <tabstop>section_type_contents</tabstop>
-  <tabstop>lineEdit</tabstop>
-  <tabstop>section_content</tabstop>
+  <tabstop>script_section_type</tabstop>
+  <tabstop>script_section_name</tabstop>
+  <tabstop>script_section_content</tabstop>
   <tabstop>run_attack_2</tabstop>
   <tabstop>stop_attack</tabstop>
   <tabstop>pause_attack</tabstop>
