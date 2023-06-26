@@ -3,11 +3,14 @@ import os
 from typing import Optional
 
 from PyQt6 import uic
-from PyQt6.QtCore import QCoreApplication
+from PyQt6.QtCore import QCoreApplication, QRunnable, QThreadPool, pyqtSlot
 from PyQt6.QtGui import QKeySequence
 from PyQt6.QtWidgets import QDialog, QFileDialog, QErrorMessage, QApplication, QMainWindow
 
 import attack
+import subprocess
+
+from time import sleep
 
 
 class CreateAttackDlg(QDialog):
@@ -42,6 +45,9 @@ class AttackUnsavedDlg(QDialog):
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Thread Pool
+        self.pool = QThreadPool()
+        print(f"Using up to {self.pool.maxThreadCount()} thread(s)")
         # Dialogs
         self.create_dlg = None
         self.open_dlg = None
@@ -63,9 +69,12 @@ class MainWindow(QMainWindow):
         self.actionSave_As.setShortcut(QKeySequence("Ctrl+Shift+S"))
         self.actionQuit.triggered.connect(self.app_quit)
         self.actionQuit.setShortcut(QKeySequence("Ctrl+Q"))
+        self.actionRun_Attack.triggered.connect(self.run_start_attack)
+        self.actionRun_Attack.setShortcut(QKeySequence("F5"))
         # Buttons
         self.script_section_add.clicked.connect(self.script_section_add_new)
         self.script_section_remove.clicked.connect(self.script_section_remove_selected)
+        self.run_button.clicked.connect(self.actionRun_Attack.trigger)
         # Combo Boxes
         self.script_section_type.currentIndexChanged.connect(self.script_update_current)
         # Text Edits
@@ -176,8 +185,6 @@ class MainWindow(QMainWindow):
             current.section_type = attack.ScriptSectionType.EMBEDDED
         elif self.script_section_type.currentIndex() == 2:
             current.section_type = attack.ScriptSectionType.REFERENCE
-        else:
-            print("*dies cutely in `script_update_current`*")
         self.mark_unsaved_changes()
 
     def script_read_current(self):
@@ -195,13 +202,16 @@ class MainWindow(QMainWindow):
                 self.script_section_type.setCurrentIndex(1)
             elif current_type is attack.ScriptSectionType.REFERENCE:
                 self.script_section_type.setCurrentIndex(2)
-            else:
-                print("*dies cutely in `script_read_current`*")
             current.name = name
             current.section_type = current_type
             current.content = content
         except IndexError:
             return
+
+    def run_start_attack(self):
+        print("run_start_attack")
+        worker = ScriptWorker(self)
+        self.pool.start(worker)
 
 
 
@@ -210,6 +220,34 @@ class MainWindow(QMainWindow):
             AttackUnsavedDlg(self).show()
         else:
             QCoreApplication.quit()
+
+
+
+class ScriptWorker(QRunnable):
+    def __init__(self, main_window: MainWindow=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.main = main_window
+
+    @pyqtSlot()
+    def run(self):
+        self.main.run_button.setDisabled(True)
+        self.main.run_pause_button.setEnabled(True)
+        self.main.run_stop_button.setEnabled(True)
+        print("Thread Start")
+        for section in self.main.atk.script.sections:
+            print(f"Running {section.name}")
+            scr_path = f"{self.main.atk.meta.name}_{section.section_id}.sh"
+            with open(scr_path, "w") as f:
+                f.write(section.content)
+            print(subprocess.run([r"chmod", r"a+x", scr_path], capture_output=True).stderr.decode("ascii"))
+            print(subprocess.run([scr_path], shell=True, capture_output=True).stdout.decode("ascii"))
+            os.remove(scr_path)
+        print("Thread End")
+        self.main.run_button.setEnabled(True)
+        self.main.run_pause_button.setDisabled(True)
+        self.main.run_stop_button.setDisabled(True)
+
+
 
 
 if __name__ == "__main__":
