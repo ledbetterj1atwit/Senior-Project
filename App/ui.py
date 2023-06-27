@@ -1,3 +1,4 @@
+import re
 import sys
 import os
 from typing import Optional
@@ -10,7 +11,7 @@ from PyQt6.QtWidgets import QDialog, QFileDialog, QErrorMessage, QApplication, Q
 import attack
 import subprocess
 
-from time import sleep
+prefix, postfix = "", ""
 
 
 class CreateAttackDlg(QDialog):
@@ -23,7 +24,8 @@ class CreateAttackDlg(QDialog):
         meta = attack.Meta(self.a_name.text(), self.a_auth.text(), self.a_ver.text(), main_window.prog_version)
         scr = attack.Script([], [])
         doc = attack.Document([])
-        main_window.atk = attack.Attack(meta, scr, doc, {})
+        out = attack.Output([])
+        main_window.atk = attack.Attack(meta, scr, doc, {}, out)
         main_window.atk_path = ""
         main_window.setWindowTitle(f"APT - *{main_window.atk.meta.name}")
         self.parent().script_clear()
@@ -104,6 +106,8 @@ class MainWindow(QMainWindow):
             err = QErrorMessage(self)
             err.finished.connect(self.open_attack)
             err.showMessage("Attack was invalid.")
+        except FileNotFoundError:
+            pass
 
     def save_attack(self):
         if self.atk_path == "":
@@ -126,9 +130,12 @@ class MainWindow(QMainWindow):
                 f"APT - {self.windowTitle().removeprefix('APT - ').removeprefix('*')}")  # Remove unsaved *
             self.atk_saved = True
         except AttributeError:  # No file made.
-            QErrorMessage(self).showMessage("Please Open or Make an attack first.")
+            self.dlg_no_attack_open()
         except FileNotFoundError:
             pass
+
+    def dlg_no_attack_open(self):
+        QErrorMessage(self).showMessage("Please Open or Make an attack first.")
 
     def mark_unsaved_changes(self, filename=""):
         self.atk_saved = False
@@ -162,12 +169,10 @@ class MainWindow(QMainWindow):
             for i in reversed(selected_indexes):
                 self.atk.script.sections.pop(i)
                 self.script_section_list.takeItem(i)
-                self.script_section_list.setCurrentRow(selected_indexes[0]-1)
+                self.script_section_list.setCurrentRow(selected_indexes[0] - 1)
                 self.mark_unsaved_changes()
         except IndexError:
             return
-
-
 
     def script_clear(self):
         for i in reversed(range(self.script_section_list.count())):
@@ -209,11 +214,8 @@ class MainWindow(QMainWindow):
             return
 
     def run_start_attack(self):
-        print("run_start_attack")
         worker = ScriptWorker(self)
         self.pool.start(worker)
-
-
 
     def app_quit(self):
         if not self.atk_saved:
@@ -222,35 +224,66 @@ class MainWindow(QMainWindow):
             QCoreApplication.quit()
 
 
-
 class ScriptWorker(QRunnable):
-    def __init__(self, main_window: MainWindow=None, *args, **kwargs):
+    def __init__(self, main_window: MainWindow = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.main = main_window
 
+    @staticmethod
+    def clean_stderr(stderr: str) -> str:
+        err_lines = stderr.split("\r\n")
+        for i in reversed(range(len(err_lines))):
+            if re.match("^Could Not Find.*nv$", err_lines[i]):
+                err_lines.pop(i)
+            elif "The system cannot find the file nv." == err_lines[i]:
+                err_lines.pop(i)
+        return "\r\n".join(err_lines)
+
+    def append_to_scriptout(self, text: str):
+        doc = self.main.run_scriptout.document()
+        doc.setPlainText(f"{doc.toPlainText()}\n{text}")
+
+    def set_statusline(self, text: str):
+        self.main.run_statusline.setText(text)
+
     @pyqtSlot()
     def run(self):
+        global prefix, postfix
+        self.main.run_scriptout.document().setPlainText("")
         self.main.run_button.setDisabled(True)
         self.main.run_pause_button.setEnabled(True)
         self.main.run_stop_button.setEnabled(True)
-        print("Thread Start")
-        for section in self.main.atk.script.sections:
-            print(f"Running {section.name}")
-            scr_path = f"{self.main.atk.meta.name}_{section.section_id}.sh"
-            with open(scr_path, "w") as f:
-                f.write(section.content)
-            print(subprocess.run([r"chmod", r"a+x", scr_path], capture_output=True).stderr.decode("ascii"))
-            print(subprocess.run([scr_path], shell=True, capture_output=True).stdout.decode("ascii"))
-            os.remove(scr_path)
-        print("Thread End")
-        self.main.run_button.setEnabled(True)
-        self.main.run_pause_button.setDisabled(True)
-        self.main.run_stop_button.setDisabled(True)
+        try:
+            for section in self.main.atk.script.sections:
+                self.set_statusline(f"Running section: {section.name}")
+                scr_path = f"{self.main.atk.meta.name}_{section.section_id}.bat"
+                with open(scr_path, "w") as f:
+                    f.write(prefix + section.content + postfix)
+                shell_out = subprocess.run([scr_path], shell=False, capture_output=True)
+                self.main.atk.output.sections.append(attack.SectionOutput(
+                    section.section_id,
+                    shell_out.stdout.decode("ascii"),
+                    self.clean_stderr(shell_out.stderr.decode("ascii"))
+                ))
+                self.append_to_scriptout(self.main.atk.output.sections[-1].content)
 
-
+                os.remove(scr_path)
+            os.remove("nv")
+            self.main.mark_unsaved_changes()
+        except AttributeError:
+            return
+        finally:
+            self.main.run_button.setEnabled(True)
+            self.main.run_pause_button.setDisabled(True)
+            self.main.run_stop_button.setDisabled(True)
+            self.set_statusline("Done")
 
 
 if __name__ == "__main__":
+    with open("prefix.bat", 'r') as p:
+        prefix = p.read()
+    with open("postfix.bat", 'r') as p:
+        postfix = p.read()
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()

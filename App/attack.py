@@ -192,8 +192,22 @@ class Script:
         return cls.from_dict(json.loads(json_str))
 
 
+class SectionOutput(SectionBase):
+    def __init__(self, section_id: int, stdout: str, stderr: str):
+        super().__init__(section_id, f"stdout:\n{stdout}\nstderr:\n{stderr}")
+        self.stdout = stdout
+        self.stderr = stderr
+
+    def to_dict(self) -> dict:
+        return super().to_dict() | {"stdout": self.stdout, "stderr": self.stderr}
+
+    @classmethod
+    def from_dict(cls, in_dict: dict):
+        return cls(in_dict["id"], in_dict["stdout"], in_dict["stderr"])
+
+
 class Output:
-    def __init__(self, sections: list[SectionBase]):
+    def __init__(self, sections: list[SectionOutput]):
         self.sections = sections
 
     def to_dict(self):
@@ -209,7 +223,7 @@ class Output:
     def from_dict(cls, in_dict: dict):
         imported_sections = []
         for section in in_dict["output"]["sections"]:
-            imported_sections.append(SectionBase.from_dict(section))
+            imported_sections.append(SectionOutput.from_dict(section))
         return cls(imported_sections)
 
     @classmethod
