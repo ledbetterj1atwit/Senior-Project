@@ -58,8 +58,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>180</width>
-                <height>428</height>
+                <width>91</width>
+                <height>91</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout">
@@ -113,7 +113,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>620</width>
+             <width>332</width>
              <height>798</height>
             </rect>
            </property>
@@ -293,6 +293,25 @@ li.checked::marker { content: &quot;\2612&quot;; }
          <widget class="QWidget" name="run_action_buttons" native="true">
           <layout class="QHBoxLayout" name="horizontalLayout_6">
            <item>
+            <widget class="QLabel" name="run_spinner">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>100</width>
+               <height>100</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QPushButton" name="run_button">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -416,8 +435,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>180</width>
-                <height>428</height>
+                <width>91</width>
+                <height>91</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -718,8 +737,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>180</width>
-                   <height>443</height>
+                   <width>91</width>
+                   <height>91</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_12">

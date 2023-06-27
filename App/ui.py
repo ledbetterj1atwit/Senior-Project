@@ -4,8 +4,8 @@ import os
 from typing import Optional
 
 from PyQt6 import uic
-from PyQt6.QtCore import QCoreApplication, QRunnable, QThreadPool, pyqtSlot
-from PyQt6.QtGui import QKeySequence
+from PyQt6.QtCore import QCoreApplication, QRunnable, QThreadPool, pyqtSlot, QSize
+from PyQt6.QtGui import QKeySequence, QMovie
 from PyQt6.QtWidgets import QDialog, QFileDialog, QErrorMessage, QApplication, QMainWindow
 
 import attack
@@ -84,6 +84,11 @@ class MainWindow(QMainWindow):
         self.script_section_content.textChanged.connect(self.script_update_current)
         # Item Lists
         self.script_section_list.itemSelectionChanged.connect(self.script_read_current)
+        # Spinner
+        movie = QMovie("ui/skull.gif")
+        movie.setScaledSize(QSize(50, 50))
+        self.run_spinner.setMovie(movie)
+        movie.start()
 
     def new_attack(self):
         self.create_dlg = CreateAttackDlg(self)
