@@ -285,6 +285,8 @@ class ScriptWorker(QRunnable):
             self.main.mark_unsaved_changes()
         except AttributeError:
             return
+        except FileNotFoundError:
+            pass
         finally:
             self.main.run_button.setEnabled(True)
             self.main.run_pause_button.setDisabled(True)
