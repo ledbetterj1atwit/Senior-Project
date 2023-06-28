@@ -22,7 +22,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="script_build">
        <attribute name="title">
@@ -58,8 +58,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>91</width>
-                <height>91</height>
+                <width>180</width>
+                <height>428</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout">
@@ -113,7 +113,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>332</width>
+             <width>620</width>
              <height>798</height>
             </rect>
            </property>
@@ -435,8 +435,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>91</width>
-                <height>91</height>
+                <width>180</width>
+                <height>428</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -737,8 +737,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>91</width>
-                   <height>91</height>
+                   <width>180</width>
+                   <height>443</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -898,7 +898,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionManula"/>
+    <addaction name="actionManual"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
@@ -934,7 +934,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <string>Generate Doc(F6)</string>
    </property>
   </action>
-  <action name="actionManula">
+  <action name="actionManual">
    <property name="text">
     <string>Manual(F1)</string>
    </property>

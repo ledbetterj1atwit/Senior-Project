@@ -1,6 +1,7 @@
 import re
 import sys
 import os
+import webbrowser
 from typing import Optional
 
 from PyQt6 import uic
@@ -73,6 +74,8 @@ class MainWindow(QMainWindow):
         self.actionQuit.setShortcut(QKeySequence("Ctrl+Q"))
         self.actionRun_Attack.triggered.connect(self.run_start_attack)
         self.actionRun_Attack.setShortcut(QKeySequence("F5"))
+        self.actionManual.triggered.connect(self.open_manual)
+        self.actionManual.setShortcut(QKeySequence("F1"))
         # Buttons
         self.script_section_add.clicked.connect(self.script_section_add_new)
         self.script_section_remove.clicked.connect(self.script_section_remove_selected)
@@ -89,6 +92,11 @@ class MainWindow(QMainWindow):
         movie.setScaledSize(QSize(50, 50))
         self.run_spinner.setMovie(movie)
         movie.start()
+
+    @staticmethod
+    def open_manual():
+        # TODO: Replace this with a link to a pdf on machine.
+        webbrowser.open("https://docs.google.com/document/d/1_ibPUTPo9p80J6AhXcd5wSnR0rmHy5oWmvowWfFlm8Q")
 
     def new_attack(self):
         self.create_dlg = CreateAttackDlg(self)
