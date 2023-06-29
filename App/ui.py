@@ -12,8 +12,6 @@ from PyQt6.QtWidgets import QDialog, QFileDialog, QErrorMessage, QApplication, Q
 import attack
 import subprocess
 
-prefix, postfix = "", ""
-
 
 class CreateAttackDlg(QDialog):
     def __init__(self, parent=None):
@@ -58,9 +56,14 @@ class MainWindow(QMainWindow):
         uic.loadUi("UI/main.ui", self)
         # Attack
         self.atk: Optional[attack.Attack] = None
-        self.atk_path = ""
         self.atk_saved = False
         self.prog_version = "0.0.0"
+        # Paths
+        self.atk_path = ""
+        self.app_dir = ""
+        # Hardcoded Batch
+        self.prefix = ""
+        self.postfix = ""
         # Actions
         self.actionNew.triggered.connect(self.new_attack)
         self.actionNew.setShortcut(QKeySequence("Ctrl+N"))
@@ -192,18 +195,24 @@ class MainWindow(QMainWindow):
             self.script_section_list.takeItem(i)
 
     def script_update_current(self):
-        current_idx = [self.script_section_list.row(i) for i in self.script_section_list.selectedItems()][0]
-        current: attack.SectionScript = self.atk.script.sections[current_idx]
-        current.name = self.script_section_name.text()
-        self.script_section_list.item(current_idx).setText(f"{current.section_id}: {current.name}")
-        current.content = self.script_section_content.document().toPlainText()
-        if self.script_section_type.currentIndex() == 0:
-            current.section_type = attack.ScriptSectionType.EMPTY
-        elif self.script_section_type.currentIndex() == 1:
-            current.section_type = attack.ScriptSectionType.EMBEDDED
-        elif self.script_section_type.currentIndex() == 2:
-            current.section_type = attack.ScriptSectionType.REFERENCE
-        self.mark_unsaved_changes()
+        try:
+            current_idx = [self.script_section_list.row(i) for i in self.script_section_list.selectedItems()][0]
+            current: attack.SectionScript = self.atk.script.sections[current_idx]
+            current.name = self.script_section_name.text()
+            self.script_section_list.item(current_idx).setText(f"{current.section_id}: {current.name}")
+            current.content = self.script_section_content.document().toPlainText()
+            if self.script_section_type.currentIndex() == 0:
+                current.section_type = attack.ScriptSectionType.EMPTY
+            elif self.script_section_type.currentIndex() == 1:
+                current.section_type = attack.ScriptSectionType.EMBEDDED
+            elif self.script_section_type.currentIndex() == 2:
+                current.section_type = attack.ScriptSectionType.REFERENCE
+            self.mark_unsaved_changes()
+        except IndexError:
+            if self.atk is None:
+                QErrorMessage(self).showMessage("Please Open or Make an attack first.")
+            else:
+                QErrorMessage(self).showMessage("Please add and select at least one section.")
 
     def script_read_current(self):
         try:
@@ -261,7 +270,6 @@ class ScriptWorker(QRunnable):
 
     @pyqtSlot()
     def run(self):
-        global prefix, postfix
         self.main.run_scriptout.document().setPlainText("")
         self.main.run_button.setDisabled(True)
         self.main.run_pause_button.setEnabled(True)
@@ -269,18 +277,30 @@ class ScriptWorker(QRunnable):
         try:
             for section in self.main.atk.script.sections:
                 self.set_statusline(f"Running section: {section.name}")
-                scr_path = f"{self.main.atk.meta.name}_{section.section_id}.bat"
-                with open(scr_path, "w") as f:
-                    f.write(prefix + section.content + postfix)
+                atk_dir = os.path.dirname(os.path.abspath(self.main.atk_path))
+                os.chdir(atk_dir)  # Operating from atk dir.
+                scr_path = ""
+                if section.section_type is attack.ScriptSectionType.EMPTY:
+                    continue
+                elif section.section_type is attack.ScriptSectionType.EMBEDDED:
+                    scr_path = f"{self.main.atk.meta.name}_{section.section_id}.bat"
+                    with open(scr_path, "w") as f:
+                        f.write(self.main.prefix +
+                                section.content +
+                                self.main.postfix.replace("diff.exe", f"{self.main.app_dir}\\diff.exe")
+                                )
+                elif section.section_type is attack.ScriptSectionType.REFERENCE:
+                    scr_path = f"{section.content}"
                 shell_out = subprocess.run([scr_path], shell=False, capture_output=True)
+                self.append_to_scriptout(f"{'=' * 10}\nSection: {section.name}\n{'=' * 10}")
                 self.main.atk.output.sections.append(attack.SectionOutput(
                     section.section_id,
-                    shell_out.stdout.decode("ascii"),
-                    self.clean_stderr(shell_out.stderr.decode("ascii"))
+                    shell_out.stdout.decode("UTF-8"),
+                    self.clean_stderr(shell_out.stderr.decode("UTF-8"))
                 ))
                 self.append_to_scriptout(self.main.atk.output.sections[-1].content)
-
-                os.remove(scr_path)
+                if section.section_type is attack.ScriptSectionType.EMBEDDED:
+                    os.remove(scr_path)
             os.remove("nv")
             self.main.mark_unsaved_changes()
         except AttributeError:
@@ -291,15 +311,17 @@ class ScriptWorker(QRunnable):
             self.main.run_button.setEnabled(True)
             self.main.run_pause_button.setDisabled(True)
             self.main.run_stop_button.setDisabled(True)
+            os.chdir(self.main.app_dir)
             self.set_statusline("Done")
 
 
 if __name__ == "__main__":
-    with open("prefix.bat", 'r') as p:
-        prefix = p.read()
-    with open("postfix.bat", 'r') as p:
-        postfix = p.read()
     app = QApplication(sys.argv)
     window = MainWindow()
+    window.app_dir = os.path.dirname(os.path.abspath(__file__))
+    with open(f"{window.app_dir}/prefix.bat", 'r') as p:
+        window.prefix = p.read()
+    with open(f"{window.app_dir}/postfix.bat", 'r') as p:
+        window.postfix = p.read()
     window.show()
     app.exec()
