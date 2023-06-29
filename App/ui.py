@@ -48,6 +48,8 @@ class MainWindow(QMainWindow):
         super().__init__(*args, **kwargs)
         # Thread Pool
         self.pool = QThreadPool()
+        self.workers: list[ScriptWorker] = []
+        self.run_paused = False
         print(f"Using up to {self.pool.maxThreadCount()} thread(s)")
         # Dialogs
         self.create_dlg = None
@@ -83,6 +85,8 @@ class MainWindow(QMainWindow):
         self.script_section_add.clicked.connect(self.script_section_add_new)
         self.script_section_remove.clicked.connect(self.script_section_remove_selected)
         self.run_button.clicked.connect(self.actionRun_Attack.trigger)
+        self.run_pause_button.clicked.connect(self.run_pause)
+        self.run_stop_button.clicked.connect(self.run_stop)
         # Combo Boxes
         self.script_section_type.currentIndexChanged.connect(self.script_update_current)
         # Text Edits
@@ -247,12 +251,32 @@ class MainWindow(QMainWindow):
                               self.atk.script.sections,
                               self.prefix,
                               self.postfix)
+        self.workers.append(worker)
         worker.signals.append_scriptout.connect(self.run_append_to_scriptout)
         worker.signals.change_statusline.connect(self.run_set_statusline)
         worker.signals.append_scriptout_from_section.connect(self.run_append_scriptout_from_section)
-        worker.signals.append_output.connect(self.run_append_outpt)
+        worker.signals.append_output.connect(self.run_append_output)
         worker.signals.finished.connect(self.run_attack_finished)
         self.pool.start(worker)
+
+    def run_pause(self):
+        self.run_paused = not self.run_paused
+        if self.run_paused:
+            self.run_pause_button.setText("Unpause")
+        else:
+            self.run_pause_button.setText("Pause at end of Section")
+        for worker in self.workers:
+            if not self.run_paused:
+                worker.unpause()
+            else:
+                worker.pause()
+
+    def run_stop(self):
+        for worker in self.workers:
+            worker.kill()
+        self.workers = []
+        self.pool.waitForDone(1)
+        self.run_attack_finished()
 
     def run_attack_finished(self):
         self.run_button.setEnabled(True)
@@ -271,7 +295,7 @@ class MainWindow(QMainWindow):
     def run_set_statusline(self, text: str):
         self.run_statusline.setText(text)
 
-    def run_append_outpt(self, out: attack.SectionOutput):
+    def run_append_output(self, out: attack.SectionOutput):
         self.atk.output.sections.append(out)
 
     def app_quit(self):
@@ -282,11 +306,13 @@ class MainWindow(QMainWindow):
 
 
 class ScriptWorkerSignals(QObject):
+    # Signals
     change_statusline: pyqtSignal = pyqtSignal(str)
     append_scriptout: pyqtSignal = pyqtSignal(str)
     append_output: pyqtSignal = pyqtSignal(attack.SectionOutput)
     append_scriptout_from_section: pyqtSignal = pyqtSignal()
     finished: pyqtSignal = pyqtSignal()
+
 
 
 class ScriptWorker(QRunnable):
@@ -308,6 +334,8 @@ class ScriptWorker(QRunnable):
         self.postfix = postfix
         self.sections = sections
         self.signals = ScriptWorkerSignals()
+        self.paused = False
+        self.killed = False
 
     @staticmethod
     def clean_stderr(stderr: str) -> str:
@@ -338,7 +366,11 @@ class ScriptWorker(QRunnable):
                                 )
                 elif section.section_type is attack.ScriptSectionType.REFERENCE:
                     scr_path = f"{section.content}"
+                if self.killed:  # Exitpoint
+                    return
                 shell_out = subprocess.run([scr_path], shell=False, capture_output=True)
+                if self.killed:  # Exitpoint
+                    return
                 self.signals.append_scriptout.emit(f"{'=' * 10}\nSection: {section.name}\n{'=' * 10}")
                 self.signals.append_output.emit(attack.SectionOutput(
                     section.section_id,
@@ -348,6 +380,8 @@ class ScriptWorker(QRunnable):
                 self.signals.append_scriptout_from_section.emit()
                 if section.section_type is attack.ScriptSectionType.EMBEDDED:
                     os.remove(scr_path)
+                while self.paused:
+                    pass # Sit and wait.
             os.remove("nv")
         except AttributeError:
             return
@@ -356,6 +390,18 @@ class ScriptWorker(QRunnable):
         finally:
             os.chdir(self.app_dir)
             self.signals.finished.emit()
+
+    @pyqtSlot()
+    def pause(self):
+        self.paused = True
+
+    @pyqtSlot()
+    def unpause(self):
+        self.paused = False
+
+    @pyqtSlot()
+    def kill(self):
+        self.killed = True
 
 
 if __name__ == "__main__":
