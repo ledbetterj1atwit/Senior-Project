@@ -5,7 +5,7 @@ import webbrowser
 from typing import Optional
 
 from PyQt6 import uic
-from PyQt6.QtCore import QCoreApplication, QRunnable, QThreadPool, pyqtSlot, QSize
+from PyQt6.QtCore import QCoreApplication, QRunnable, QThreadPool, pyqtSlot, QSize, QObject, pyqtSignal
 from PyQt6.QtGui import QKeySequence, QMovie
 from PyQt6.QtWidgets import QDialog, QFileDialog, QErrorMessage, QApplication, QMainWindow
 
@@ -236,8 +236,43 @@ class MainWindow(QMainWindow):
             return
 
     def run_start_attack(self):
-        worker = ScriptWorker(self)
+        self.run_scriptout.document().setPlainText("")
+        self.run_button.setDisabled(True)
+        self.run_pause_button.setEnabled(True)
+        self.run_stop_button.setEnabled(True)
+
+        worker = ScriptWorker(self.app_dir,
+                              self.atk_path,
+                              self.atk.meta.name,
+                              self.atk.script.sections,
+                              self.prefix,
+                              self.postfix)
+        worker.signals.append_scriptout.connect(self.run_append_to_scriptout)
+        worker.signals.change_statusline.connect(self.run_set_statusline)
+        worker.signals.append_scriptout_from_section.connect(self.run_append_scriptout_from_section)
+        worker.signals.append_output.connect(self.run_append_outpt)
+        worker.signals.finished.connect(self.run_attack_finished)
         self.pool.start(worker)
+
+    def run_attack_finished(self):
+        self.run_button.setEnabled(True)
+        self.run_pause_button.setDisabled(True)
+        self.run_stop_button.setDisabled(True)
+        self.run_set_statusline("Done")
+        self.mark_unsaved_changes()
+
+    def run_append_to_scriptout(self, text: str):
+        doc = self.run_scriptout.document()
+        doc.setPlainText(f"{doc.toPlainText()}\n{text}")
+
+    def run_append_scriptout_from_section(self):
+        self.run_append_to_scriptout(self.atk.output.sections[-1].content)
+
+    def run_set_statusline(self, text: str):
+        self.run_statusline.setText(text)
+
+    def run_append_outpt(self, out: attack.SectionOutput):
+        self.atk.output.sections.append(out)
 
     def app_quit(self):
         if not self.atk_saved:
@@ -246,10 +281,33 @@ class MainWindow(QMainWindow):
             QCoreApplication.quit()
 
 
+class ScriptWorkerSignals(QObject):
+    change_statusline: pyqtSignal = pyqtSignal(str)
+    append_scriptout: pyqtSignal = pyqtSignal(str)
+    append_output: pyqtSignal = pyqtSignal(attack.SectionOutput)
+    append_scriptout_from_section: pyqtSignal = pyqtSignal()
+    finished: pyqtSignal = pyqtSignal()
+
+
 class ScriptWorker(QRunnable):
-    def __init__(self, main_window: MainWindow = None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.main = main_window
+    def __init__(self, app_dir: str,
+                 atk_path: str,
+                 atk_name: str,
+                 sections: list[attack.SectionScript],
+                 prefix: str,
+                 postfix: str,
+                 *args, **kwargs):
+        super(ScriptWorker, self).__init__()
+        # Store constructor arguments (re-used for processing)
+        self.args = args
+        self.kwargs = kwargs
+        self.app_dir = app_dir
+        self.atk_path = atk_path
+        self.atk_name = atk_name
+        self.prefix = prefix
+        self.postfix = postfix
+        self.sections = sections
+        self.signals = ScriptWorkerSignals()
 
     @staticmethod
     def clean_stderr(stderr: str) -> str:
@@ -261,58 +319,43 @@ class ScriptWorker(QRunnable):
                 err_lines.pop(i)
         return "\r\n".join(err_lines)
 
-    def append_to_scriptout(self, text: str):
-        doc = self.main.run_scriptout.document()
-        doc.setPlainText(f"{doc.toPlainText()}\n{text}")
-
-    def set_statusline(self, text: str):
-        self.main.run_statusline.setText(text)
-
     @pyqtSlot()
     def run(self):
-        self.main.run_scriptout.document().setPlainText("")
-        self.main.run_button.setDisabled(True)
-        self.main.run_pause_button.setEnabled(True)
-        self.main.run_stop_button.setEnabled(True)
         try:
-            for section in self.main.atk.script.sections:
-                self.set_statusline(f"Running section: {section.name}")
-                atk_dir = os.path.dirname(os.path.abspath(self.main.atk_path))
+            for section in self.sections:
+                self.signals.change_statusline.emit(f"Running section: {section.name}")
+                atk_dir = os.path.dirname(os.path.abspath(self.atk_path))
                 os.chdir(atk_dir)  # Operating from atk dir.
                 scr_path = ""
                 if section.section_type is attack.ScriptSectionType.EMPTY:
                     continue
                 elif section.section_type is attack.ScriptSectionType.EMBEDDED:
-                    scr_path = f"{self.main.atk.meta.name}_{section.section_id}.bat"
+                    scr_path = f"{self.atk_name}_{section.section_id}.bat"
                     with open(scr_path, "w") as f:
-                        f.write(self.main.prefix +
+                        f.write(self.prefix +
                                 section.content +
-                                self.main.postfix.replace("diff.exe", f"{self.main.app_dir}\\diff.exe")
+                                self.postfix.replace("diff.exe", f"{self.app_dir}\\diff.exe")
                                 )
                 elif section.section_type is attack.ScriptSectionType.REFERENCE:
                     scr_path = f"{section.content}"
                 shell_out = subprocess.run([scr_path], shell=False, capture_output=True)
-                self.append_to_scriptout(f"{'=' * 10}\nSection: {section.name}\n{'=' * 10}")
-                self.main.atk.output.sections.append(attack.SectionOutput(
+                self.signals.append_scriptout.emit(f"{'=' * 10}\nSection: {section.name}\n{'=' * 10}")
+                self.signals.append_output.emit(attack.SectionOutput(
                     section.section_id,
                     shell_out.stdout.decode("UTF-8"),
                     self.clean_stderr(shell_out.stderr.decode("UTF-8"))
                 ))
-                self.append_to_scriptout(self.main.atk.output.sections[-1].content)
+                self.signals.append_scriptout_from_section.emit()
                 if section.section_type is attack.ScriptSectionType.EMBEDDED:
                     os.remove(scr_path)
             os.remove("nv")
-            self.main.mark_unsaved_changes()
         except AttributeError:
             return
         except FileNotFoundError:
             pass
         finally:
-            self.main.run_button.setEnabled(True)
-            self.main.run_pause_button.setDisabled(True)
-            self.main.run_stop_button.setDisabled(True)
-            os.chdir(self.main.app_dir)
-            self.set_statusline("Done")
+            os.chdir(self.app_dir)
+            self.signals.finished.emit()
 
 
 if __name__ == "__main__":
