@@ -264,7 +264,7 @@ class MainWindow(QMainWindow):
         if self.run_paused:
             self.run_pause_button.setText("Unpause")
         else:
-            self.run_pause_button.setText("Pause at end of Section")
+            self.run_pause_button.setText("Pause At End Of Section")
         for worker in self.workers:
             if not self.run_paused:
                 worker.unpause()
