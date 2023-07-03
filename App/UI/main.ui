@@ -22,7 +22,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="script_build">
        <attribute name="title">
@@ -441,7 +441,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_4">
                <item>
-                <widget class="QListWidget" name="document_section_list">
+                <widget class="QListWidget" name="doc_section_list">
                  <property name="alternatingRowColors">
                   <bool>true</bool>
                  </property>
@@ -458,14 +458,14 @@ li.checked::marker { content: &quot;\2612&quot;; }
             <widget class="QWidget" name="add_remove_section_widget_2" native="true">
              <layout class="QHBoxLayout" name="horizontalLayout_5">
               <item>
-               <widget class="QPushButton" name="pushButton_3">
+               <widget class="QPushButton" name="doc_section_add">
                 <property name="text">
                  <string>+</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="pushButton_4">
+               <widget class="QPushButton" name="doc_section_remove">
                 <property name="text">
                  <string>-</string>
                 </property>
@@ -489,7 +489,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>0</y>
+                <y>-212</y>
                 <width>701</width>
                 <height>826</height>
                </rect>
@@ -533,7 +533,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                 </widget>
                </item>
                <item>
-                <widget class="QLineEdit" name="lineEdit_3">
+                <widget class="QLineEdit" name="pattern_content">
                  <property name="text">
                   <string>Enter LaTeX code here.</string>
                  </property>
@@ -610,7 +610,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                 </widget>
                </item>
                <item>
-                <widget class="QComboBox" name="section_type_contents_3">
+                <widget class="QComboBox" name="doc_section_type">
                  <item>
                   <property name="text">
                    <string>Empty: Do not add this section to the document.</string>
@@ -631,11 +631,6 @@ li.checked::marker { content: &quot;\2612&quot;; }
                    <string>Pattern: Like Literal but augmented by the patterns above.</string>
                   </property>
                  </item>
-                 <item>
-                  <property name="text">
-                   <string>Combined: (Not yet implemented) Like literal but with special tags to use the refrence and pattern behavior at certian places.</string>
-                  </property>
-                 </item>
                 </widget>
                </item>
                <item>
@@ -646,7 +641,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                 </widget>
                </item>
                <item>
-                <widget class="QLineEdit" name="lineEdit_2"/>
+                <widget class="QLineEdit" name="doc_section_name"/>
                </item>
                <item>
                 <widget class="Line" name="line_6">
@@ -666,7 +661,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                 </widget>
                </item>
                <item>
-                <widget class="QTextEdit" name="section_content_3">
+                <widget class="QTextEdit" name="doc_section_content">
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
@@ -962,20 +957,20 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <tabstop>run_stop_button</tabstop>
   <tabstop>run_pause_button</tabstop>
   <tabstop>run_scriptout</tabstop>
-  <tabstop>document_section_list</tabstop>
+  <tabstop>doc_section_list</tabstop>
   <tabstop>scrollArea_2</tabstop>
-  <tabstop>pushButton_3</tabstop>
-  <tabstop>pushButton_4</tabstop>
+  <tabstop>doc_section_add</tabstop>
+  <tabstop>doc_section_remove</tabstop>
   <tabstop>scrollArea_5</tabstop>
   <tabstop>pattern_select</tabstop>
   <tabstop>pattern_regex</tabstop>
-  <tabstop>lineEdit_3</tabstop>
+  <tabstop>pattern_content</tabstop>
   <tabstop>pattern_behavior</tabstop>
   <tabstop>pattern_add</tabstop>
   <tabstop>pattern_remove</tabstop>
-  <tabstop>section_type_contents_3</tabstop>
-  <tabstop>lineEdit_2</tabstop>
-  <tabstop>section_content_3</tabstop>
+  <tabstop>doc_section_type</tabstop>
+  <tabstop>doc_section_name</tabstop>
+  <tabstop>doc_section_content</tabstop>
   <tabstop>document_generate_section_list</tabstop>
   <tabstop>scrollArea_6</tabstop>
   <tabstop>textEdit</tabstop>

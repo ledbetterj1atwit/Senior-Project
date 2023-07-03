@@ -84,16 +84,22 @@ class MainWindow(QMainWindow):
         # Buttons
         self.script_section_add.clicked.connect(self.script_section_add_new)
         self.script_section_remove.clicked.connect(self.script_section_remove_selected)
+        self.doc_section_add.clicked.connect(self.doc_section_add_new)
+        self.doc_section_remove.clicked.connect(self.doc_section_remove_selected)
         self.run_button.clicked.connect(self.actionRun_Attack.trigger)
         self.run_pause_button.clicked.connect(self.run_pause)
         self.run_stop_button.clicked.connect(self.run_stop)
         # Combo Boxes
         self.script_section_type.currentIndexChanged.connect(self.script_update_current)
+        self.doc_section_type.currentIndexChanged.connect(self.doc_update_current)
         # Text Edits
         self.script_section_name.textChanged.connect(self.script_update_current)
         self.script_section_content.textChanged.connect(self.script_update_current)
+        self.doc_section_name.textChanged.connect(self.doc_update_current)
+        self.doc_section_content.textChanged.connect(self.doc_update_current)
         # Item Lists
         self.script_section_list.itemSelectionChanged.connect(self.script_read_current)
+        self.doc_section_list.itemSelectionChanged.connect(self.doc_read_current)
         # Spinner
         movie = QMovie("ui/skull.gif")
         movie.setScaledSize(QSize(50, 50))
@@ -120,6 +126,8 @@ class MainWindow(QMainWindow):
             self.script_clear()
             for script_section in self.atk.script.sections:
                 self.script_section_add_existing(script_section)
+            for doc_section in self.atk.document.sections:
+                self.doc_section_add_existing(doc_section)
             self.setWindowTitle(f"APT - {self.atk.meta.name}")
             self.atk_saved = True
         except KeyError:
@@ -298,6 +306,86 @@ class MainWindow(QMainWindow):
     def run_append_output(self, out: attack.SectionOutput):
         self.atk.output.sections.append(out)
 
+    def doc_section_add_new(self):
+        if self.atk is None:
+            QErrorMessage(self).showMessage("Please Open or Make an attack first.")
+            return
+        new_id = 0
+        try:
+            new_id = self.atk.document.sections[-1].section_id + 1
+        except IndexError:
+            pass
+        self.atk.document.sections.append(attack.SectionDocument(new_id,
+                                                                 "Unnamed Section",
+                                                                 attack.DocumentSectionType.EMPTY,
+                                                                 "",
+                                                                 []))
+        self.doc_section_list.addItem(f"{new_id}: Unnamed Section")
+        self.mark_unsaved_changes()
+
+    def doc_section_add_existing(self, section: attack.SectionDocument):
+        self.doc_section_list.addItem(f"{section.section_id}: {section.name}")
+
+    def doc_section_remove_selected(self):
+        try:
+            selected_indexes = [self.doc_section_list.row(i) for i in self.doc_section_list.selectedItems()]
+            for i in reversed(selected_indexes):
+                self.atk.document.sections.pop(i)
+                self.doc_section_list.takeItem(i)
+                self.doc_section_list.setCurrentRow(selected_indexes[0] - 1)
+                self.mark_unsaved_changes()
+        except IndexError:
+            return
+
+    def doc_clear(self):
+        for i in reversed(range(self.doc_section_list.count())):
+            self.doc_section_list.takeItem(i)
+
+    def doc_update_current(self):
+        try:
+            current_idx = [self.doc_section_list.row(i) for i in self.doc_section_list.selectedItems()][0]
+            current: attack.SectionDocument = self.atk.document.sections[current_idx]
+            current.name = self.doc_section_name.text()
+            self.doc_section_list.item(current_idx).setText(f"{current.section_id}: {current.name}")
+            current.content = self.doc_section_content.document().toPlainText()
+            if self.doc_section_type.currentIndex() == 0:
+                current.section_type = attack.DocumentSectionType.EMPTY
+            elif self.doc_section_type.currentIndex() == 1:
+                current.section_type = attack.DocumentSectionType.LITERAL
+            elif self.doc_section_type.currentIndex() == 2:
+                current.section_type = attack.DocumentSectionType.REFERENCE
+            elif self.doc_section_type.currentIndex() == 3:
+                current.section_type = attack.DocumentSectionType.PATTERN
+            self.mark_unsaved_changes()
+        except IndexError:
+            if self.atk is None:
+                QErrorMessage(self).showMessage("Please Open or Make an attack first.")
+            else:
+                QErrorMessage(self).showMessage("Please add and select at least one section.")
+
+    def doc_read_current(self):
+        try:
+            current_idx = [self.doc_section_list.row(i) for i in self.doc_section_list.selectedItems()][0]
+            current: attack.SectionDocument = self.atk.document.sections[current_idx]
+            name = current.name
+            content = current.content
+            current_type = current.section_type
+            self.doc_section_name.setText(name)
+            self.doc_section_content.document().setPlainText(content)
+            if current_type is attack.DocumentSectionType.EMPTY:
+                self.doc_section_type.setCurrentIndex(0)
+            elif current_type is attack.DocumentSectionType.LITERAL:
+                self.doc_section_type.setCurrentIndex(1)
+            elif current_type is attack.DocumentSectionType.REFERENCE:
+                self.doc_section_type.setCurrentIndex(2)
+            elif current_type is attack.DocumentSectionType.PATTERN:
+                self.doc_section_type.setCurrentIndex(3)
+            current.name = name
+            current.section_type = current_type
+            current.content = content
+        except IndexError:
+            return
+
     def app_quit(self):
         if not self.atk_saved:
             AttackUnsavedDlg(self).show()
@@ -312,7 +400,6 @@ class ScriptWorkerSignals(QObject):
     append_output: pyqtSignal = pyqtSignal(attack.SectionOutput)
     append_scriptout_from_section: pyqtSignal = pyqtSignal()
     finished: pyqtSignal = pyqtSignal()
-
 
 
 class ScriptWorker(QRunnable):
@@ -381,7 +468,7 @@ class ScriptWorker(QRunnable):
                 if section.section_type is attack.ScriptSectionType.EMBEDDED:
                     os.remove(scr_path)
                 while self.paused:
-                    pass # Sit and wait.
+                    pass  # Sit and wait.
             os.remove("nv")
         except AttributeError:
             return
