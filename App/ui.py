@@ -86,17 +86,23 @@ class MainWindow(QMainWindow):
         self.script_section_remove.clicked.connect(self.script_section_remove_selected)
         self.doc_section_add.clicked.connect(self.doc_section_add_new)
         self.doc_section_remove.clicked.connect(self.doc_section_remove_selected)
+        self.pattern_add_button.clicked.connect(self.pattern_add)
+        self.pattern_remove_button.clicked.connect(self.pattern_remove)
         self.run_button.clicked.connect(self.actionRun_Attack.trigger)
         self.run_pause_button.clicked.connect(self.run_pause)
         self.run_stop_button.clicked.connect(self.run_stop)
         # Combo Boxes
         self.script_section_type.currentIndexChanged.connect(self.script_update_current)
         self.doc_section_type.currentIndexChanged.connect(self.doc_update_current)
+        self.pattern_select.currentIndexChanged.connect(self.pattern_read_current)
+        self.pattern_behavior.currentIndexChanged.connect(self.pattern_set_current)
         # Text Edits
         self.script_section_name.textChanged.connect(self.script_update_current)
         self.script_section_content.textChanged.connect(self.script_update_current)
         self.doc_section_name.textChanged.connect(self.doc_update_current)
         self.doc_section_content.textChanged.connect(self.doc_update_current)
+        self.pattern_regex.textChanged.connect(self.pattern_set_current)
+        self.pattern_content.textChanged.connect(self.pattern_set_current)
         # Item Lists
         self.script_section_list.itemSelectionChanged.connect(self.script_read_current)
         self.doc_section_list.itemSelectionChanged.connect(self.doc_read_current)
@@ -356,6 +362,7 @@ class MainWindow(QMainWindow):
                 current.section_type = attack.DocumentSectionType.REFERENCE
             elif self.doc_section_type.currentIndex() == 3:
                 current.section_type = attack.DocumentSectionType.PATTERN
+            self.pattern_load()
             self.mark_unsaved_changes()
         except IndexError:
             if self.atk is None:
@@ -385,6 +392,74 @@ class MainWindow(QMainWindow):
             current.content = content
         except IndexError:
             return
+
+    def pattern_add(self):
+        new_pattern = attack.Pattern("new pattern", "This pattern has not been set-up.", attack.PatternBehavior.REPLACE)
+        current_idx = [self.doc_section_list.row(i) for i in self.doc_section_list.selectedItems()][0]
+        current: attack.SectionDocument = self.atk.document.sections[current_idx]
+        current.patterns.append(new_pattern)
+        self.pattern_select.addItem(new_pattern.pattern_str)
+        self.pattern_select.setCurrentIndex(len(current.patterns)-1)
+
+    def pattern_remove(self):
+        current_idx = [self.doc_section_list.row(i) for i in self.doc_section_list.selectedItems()][0]
+        current: attack.SectionDocument = self.atk.document.sections[current_idx]
+        pattern_idx = self.pattern_select.currentIndex()
+        self.pattern_select.removeItem(pattern_idx)
+        current.patterns.pop(pattern_idx)
+
+    def pattern_load(self):
+        current_idx = [self.doc_section_list.row(i) for i in self.doc_section_list.selectedItems()][0]
+        current: attack.SectionDocument = self.atk.document.sections[current_idx]
+        for pattern in current.patterns:
+            self.pattern_select.addItem(pattern.pattern_str)
+        self.pattern_select.setCurrentIndex(0)
+
+    def pattern_read_current(self):
+        try:
+            current_idx = [self.doc_section_list.row(i) for i in self.doc_section_list.selectedItems()][0]
+            current: attack.SectionDocument = self.atk.document.sections[current_idx]
+            pattern_idx = self.pattern_select.currentIndex()
+            self.pattern_regex.setText(current.patterns[pattern_idx].pattern_str)
+            self.pattern_content.setText(current.patterns[pattern_idx].match_content)
+            if current.patterns[pattern_idx].behavior is attack.PatternBehavior.REPLACE:
+                self.pattern_behavior.setCurrentIndex(0)
+            elif current.patterns[pattern_idx].behavior is attack.PatternBehavior.ADD:
+                self.pattern_behavior.setCurrentIndex(1)
+            elif current.patterns[pattern_idx].behavior is attack.PatternBehavior.REMOVE:
+                self.pattern_behavior.setCurrentIndex(2)
+            elif current.patterns[pattern_idx].behavior is attack.PatternBehavior.END:
+                self.pattern_behavior.setCurrentIndex(3)
+            elif current.patterns[pattern_idx].behavior is attack.PatternBehavior.ERROR:
+                self.pattern_behavior.setCurrentIndex(4)
+        except IndexError:
+            return
+
+    def pattern_set_current(self):
+        current = None
+        try:
+            current_idx = [self.doc_section_list.row(i) for i in self.doc_section_list.selectedItems()][0]
+            current: attack.SectionDocument = self.atk.document.sections[current_idx]
+            pattern_idx = self.pattern_select.currentIndex()
+            current.patterns[pattern_idx].pattern_str = self.pattern_regex.text()
+            current.patterns[pattern_idx].match_content = self.pattern_content.text()
+            if self.pattern_behavior.currentIndex() == 0:
+                current.patterns[pattern_idx].behavior = attack.PatternBehavior.REPLACE
+            elif self.pattern_behavior.currentIndex() == 1:
+                current.patterns[pattern_idx].behavior = attack.PatternBehavior.ADD
+            elif self.pattern_behavior.currentIndex() == 2:
+                current.patterns[pattern_idx].behavior = attack.PatternBehavior.REMOVE
+            elif self.pattern_behavior.currentIndex() == 3:
+                current.patterns[pattern_idx].behavior = attack.PatternBehavior.END
+            elif self.pattern_behavior.currentIndex() == 4:
+                current.patterns[pattern_idx].behavior = attack.PatternBehavior.ERROR
+        except IndexError:
+            if self.atk is None:
+                QErrorMessage(self).showMessage("Please Open or Make an attack first.")
+            elif current is None:
+                QErrorMessage(self).showMessage("Please add and select at least one section.")
+            else:
+                QErrorMessage(self).showMessage("Please add and select at least one pattern.")
 
     def app_quit(self):
         if not self.atk_saved:

@@ -489,8 +489,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>-212</y>
-                <width>701</width>
+                <y>0</y>
+                <width>602</width>
                 <height>826</height>
                </rect>
               </property>
@@ -550,12 +550,12 @@ li.checked::marker { content: &quot;\2612&quot;; }
                 <widget class="QComboBox" name="pattern_behavior">
                  <item>
                   <property name="text">
-                   <string>Add Pattern content after Section content</string>
+                   <string>Replace Section content with Pattern content</string>
                   </property>
                  </item>
                  <item>
                   <property name="text">
-                   <string>Replace Section content with Pattern content</string>
+                   <string>Add Pattern content after Section content</string>
                   </property>
                  </item>
                  <item>
@@ -579,14 +579,14 @@ li.checked::marker { content: &quot;\2612&quot;; }
                 <widget class="QWidget" name="pattern_add_remove" native="true">
                  <layout class="QHBoxLayout" name="horizontalLayout_7">
                   <item>
-                   <widget class="QPushButton" name="pattern_add">
+                   <widget class="QPushButton" name="pattern_add_button">
                     <property name="text">
                      <string>+</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="pattern_remove">
+                   <widget class="QPushButton" name="pattern_remove_button">
                     <property name="text">
                      <string>-</string>
                     </property>
@@ -966,8 +966,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <tabstop>pattern_regex</tabstop>
   <tabstop>pattern_content</tabstop>
   <tabstop>pattern_behavior</tabstop>
-  <tabstop>pattern_add</tabstop>
-  <tabstop>pattern_remove</tabstop>
+  <tabstop>pattern_add_button</tabstop>
+  <tabstop>pattern_remove_button</tabstop>
   <tabstop>doc_section_type</tabstop>
   <tabstop>doc_section_name</tabstop>
   <tabstop>doc_section_content</tabstop>
