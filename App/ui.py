@@ -7,7 +7,7 @@ from typing import Optional
 from PyQt6 import uic
 from PyQt6.QtCore import QCoreApplication, QRunnable, QThreadPool, pyqtSlot, QSize, QObject, pyqtSignal
 from PyQt6.QtGui import QKeySequence, QMovie
-from PyQt6.QtWidgets import QDialog, QFileDialog, QErrorMessage, QApplication, QMainWindow
+from PyQt6.QtWidgets import QDialog, QFileDialog, QErrorMessage, QApplication, QMainWindow, QTableWidgetItem
 
 import attack
 import subprocess
@@ -84,6 +84,8 @@ class MainWindow(QMainWindow):
         # Buttons
         self.script_section_add.clicked.connect(self.script_section_add_new)
         self.script_section_remove.clicked.connect(self.script_section_remove_selected)
+        self.var_button_add.clicked.connect(self.var_add)
+        self.var_button_remove.clicked.connect(self.var_remove)
         self.doc_section_add.clicked.connect(self.doc_section_add_new)
         self.doc_section_remove.clicked.connect(self.doc_section_remove_selected)
         self.pattern_add_button.clicked.connect(self.pattern_add)
@@ -106,6 +108,8 @@ class MainWindow(QMainWindow):
         # Item Lists
         self.script_section_list.itemSelectionChanged.connect(self.script_read_current)
         self.doc_section_list.itemSelectionChanged.connect(self.doc_read_current)
+        self.var_table.cellDoubleClicked.connect(self.var_entered)
+        self.var_table.cellChanged.connect(self.var_changed)
         # Spinner
         movie = QMovie("ui/skull.gif")
         movie.setScaledSize(QSize(50, 50))
@@ -253,6 +257,68 @@ class MainWindow(QMainWindow):
         except IndexError:
             return
 
+    def generate_new_var_name(self):
+        idx = 0
+        for i in self.atk.variables.keys():
+            res = re.match(r"unnamed(\([0-9]+\))?", i)
+            try:
+                if res is not None and int(res.group(1)[1:-1]) >= idx:
+                    idx = int(res.group(1)[1:-1]) + 1
+            except TypeError:  # for "unnamed"
+                if idx == 0:
+                    idx = 1
+        if idx == 0:
+            return "unnamed"
+        else:
+            return f"unnamed({idx})"
+
+    def var_add(self):
+        try:
+            new_name = self.generate_new_var_name()
+            new_value = "value goes here"
+            new_var = {new_name: new_value}
+            new_row_idx = self.var_table.rowCount()
+            self.var_table.insertRow(new_row_idx)
+            new_name_item = QTableWidgetItem(new_name)
+            new_value_item = QTableWidgetItem(new_value)
+            self.var_table.setItem(new_row_idx, 0, new_name_item)
+            self.var_table.setItem(new_row_idx, 1, new_value_item)
+            # self.var_table.scrollToItem(new_name_item)
+            self.atk.variables.update(new_var)
+        except AttributeError:
+            QErrorMessage(self).showMessage("Please Open or Make an attack first.")
+
+    def var_remove(self):
+        to_remove = [i.row() for i in self.var_table.selectedIndexes()]
+        to_remove = reversed(list(set(to_remove)))  # Remove dups, sort, reverse.
+        for idx in to_remove:
+            var_to_remove = self.var_table.item(idx, 0).text()
+            self.atk.variables.pop(var_to_remove)
+            self.var_table.removeRow(idx)
+
+    def var_load(self):
+        # TODO: Implement me
+        pass
+
+    def var_changed(self, row, column):
+        try:
+            if column == 0:
+                old_name = self.var_old_content
+                old_val = self.atk.variables[old_name]
+                new_name = self.var_table.item(row, column).text()
+                self.atk.variables.pop(old_name)
+                self.atk.variables.update({new_name: old_val})
+            else:
+                name = self.var_table.item(row, 0).text()
+                self.atk.variables[name] = self.var_table.item(row, column).text()
+        except AttributeError:  # Adds
+            pass
+        except KeyError:  # Removes
+            pass
+
+    def var_entered(self, row, column):
+        self.var_old_content = self.var_table.item(row, column).text()
+
     def run_start_attack(self):
         self.run_scriptout.document().setPlainText("")
         self.run_button.setDisabled(True)
@@ -399,7 +465,7 @@ class MainWindow(QMainWindow):
         current: attack.SectionDocument = self.atk.document.sections[current_idx]
         current.patterns.append(new_pattern)
         self.pattern_select.addItem(new_pattern.pattern_str)
-        self.pattern_select.setCurrentIndex(len(current.patterns)-1)
+        self.pattern_select.setCurrentIndex(len(current.patterns) - 1)
 
     def pattern_remove(self):
         current_idx = [self.doc_section_list.row(i) for i in self.doc_section_list.selectedItems()][0]

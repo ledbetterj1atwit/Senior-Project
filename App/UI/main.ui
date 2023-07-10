@@ -22,7 +22,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="script_build">
        <attribute name="title">
@@ -127,12 +127,12 @@
                <set>Qt::AlignCenter</set>
               </property>
               <property name="buddy">
-               <cstring>tableWidget</cstring>
+               <cstring>var_table</cstring>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QTableWidget" name="tableWidget">
+             <widget class="QTableWidget" name="var_table">
               <property name="minimumSize">
                <size>
                 <width>0</width>
@@ -173,14 +173,14 @@
              <widget class="QWidget" name="var_add_remove_buttons" native="true">
               <layout class="QHBoxLayout" name="horizontalLayout">
                <item>
-                <widget class="QPushButton" name="var_add">
+                <widget class="QPushButton" name="var_button_add">
                  <property name="text">
                   <string>+</string>
                  </property>
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="var_remove">
+                <widget class="QPushButton" name="var_button_remove">
                  <property name="text">
                   <string>-</string>
                  </property>
@@ -947,9 +947,9 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <tabstop>script_section_add</tabstop>
   <tabstop>script_section_remove</tabstop>
   <tabstop>scrollArea_3</tabstop>
-  <tabstop>tableWidget</tabstop>
-  <tabstop>var_add</tabstop>
-  <tabstop>var_remove</tabstop>
+  <tabstop>var_table</tabstop>
+  <tabstop>var_button_add</tabstop>
+  <tabstop>var_button_remove</tabstop>
   <tabstop>script_section_type</tabstop>
   <tabstop>script_section_name</tabstop>
   <tabstop>script_section_content</tabstop>
