@@ -352,7 +352,8 @@ class MainWindow(QMainWindow):
                               self.atk.meta.name,
                               self.atk.script.sections,
                               self.prefix,
-                              self.postfix)
+                              self.postfix,
+                              self.atk.variables)
         self.workers.append(worker)
         worker.signals.append_scriptout.connect(self.run_append_to_scriptout)
         worker.signals.change_statusline.connect(self.run_set_statusline)
@@ -572,6 +573,7 @@ class ScriptWorker(QRunnable):
                  sections: list[attack.SectionScript],
                  prefix: str,
                  postfix: str,
+                 vars: dict,
                  *args, **kwargs):
         super(ScriptWorker, self).__init__()
         # Store constructor arguments (re-used for processing)
@@ -583,6 +585,7 @@ class ScriptWorker(QRunnable):
         self.prefix = prefix
         self.postfix = postfix
         self.sections = sections
+        self.vars = vars
         self.signals = ScriptWorkerSignals()
         self.paused = False
         self.killed = False
@@ -604,18 +607,40 @@ class ScriptWorker(QRunnable):
                 self.signals.change_statusline.emit(f"Running section: {section.name}")
                 atk_dir = os.path.dirname(os.path.abspath(self.atk_path))
                 os.chdir(atk_dir)  # Operating from atk dir.
+                vars_str = self.from_vars()
                 scr_path = ""
                 if section.section_type is attack.ScriptSectionType.EMPTY:
                     continue
                 elif section.section_type is attack.ScriptSectionType.EMBEDDED:
                     scr_path = f"{self.atk_name}_{section.section_id}.bat"
                     with open(scr_path, "w") as f:
-                        f.write(self.prefix +
-                                section.content +
-                                self.postfix.replace("diff.exe", f"{self.app_dir}\\diff.exe")
-                                )
+                        if section.section_id == 0:
+                            f.write(self.prefix +
+                                    vars_str +
+                                    section.content +
+                                    self.postfix.replace("diff.exe", f"{self.app_dir}\\diff.exe")
+                                    )
+                        else:
+                            f.write(self.prefix +
+                                    section.content +
+                                    self.postfix.replace("diff.exe", f"{self.app_dir}\\diff.exe")
+                                    )
                 elif section.section_type is attack.ScriptSectionType.REFERENCE:
-                    scr_path = f"{section.content}"
+                    org_scr_path = f"{section.content}"
+                    scr_path = f"{self.atk_name}_{section.section_id}.bat"
+                    with open(org_scr_path, "r") as o:
+                        with open(scr_path, "w") as f:
+                            if section.section_id == 0:
+                                f.write(self.prefix +
+                                        vars_str +
+                                        o.read() +
+                                        self.postfix.replace("diff.exe", f"{self.app_dir}\\diff.exe")
+                                        )
+                            else:
+                                f.write(self.prefix +
+                                        o.read() +
+                                        self.postfix.replace("diff.exe", f"{self.app_dir}\\diff.exe")
+                                        )
                 if self.killed:  # Exitpoint
                     return
                 shell_out = subprocess.run([scr_path], shell=False, capture_output=True)
@@ -652,6 +677,15 @@ class ScriptWorker(QRunnable):
     @pyqtSlot()
     def kill(self):
         self.killed = True
+
+    def from_vars(self):
+        content = ""
+        for i in self.vars.keys():
+            if " " in self.vars[i]:
+                content += f"set {i}=\"{self.vars[i]}\"\n"
+            else:
+                content += f"set {i}={self.vars[i]}\n"
+        return content
 
 
 if __name__ == "__main__":
