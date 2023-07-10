@@ -28,6 +28,7 @@ class CreateAttackDlg(QDialog):
         main_window.atk_path = ""
         main_window.setWindowTitle(f"APT - *{main_window.atk.meta.name}")
         self.parent().script_clear()
+        self.parent().var_load()
         super().accept()
 
 
@@ -47,6 +48,7 @@ class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Thread Pool
+        self.loading: bool = False
         self.pool = QThreadPool()
         self.workers: list[ScriptWorker] = []
         self.run_paused = False
@@ -108,7 +110,7 @@ class MainWindow(QMainWindow):
         # Item Lists
         self.script_section_list.itemSelectionChanged.connect(self.script_read_current)
         self.doc_section_list.itemSelectionChanged.connect(self.doc_read_current)
-        self.var_table.cellDoubleClicked.connect(self.var_entered)
+        self.var_table.itemSelectionChanged.connect(self.var_entered)
         self.var_table.cellChanged.connect(self.var_changed)
         # Spinner
         movie = QMovie("ui/skull.gif")
@@ -122,10 +124,13 @@ class MainWindow(QMainWindow):
         webbrowser.open("https://docs.google.com/document/d/1_ibPUTPo9p80J6AhXcd5wSnR0rmHy5oWmvowWfFlm8Q")
 
     def new_attack(self):
+        self.loading = True
         self.create_dlg = CreateAttackDlg(self)
         self.create_dlg.show()
+        self.loading = False
 
     def open_attack(self):
+        self.loading = True
         new_path = QFileDialog.getOpenFileName(self,
                                                "Open Attack",
                                                os.path.expanduser("~"),
@@ -138,6 +143,7 @@ class MainWindow(QMainWindow):
                 self.script_section_add_existing(script_section)
             for doc_section in self.atk.document.sections:
                 self.doc_section_add_existing(doc_section)
+            self.var_load()
             self.setWindowTitle(f"APT - {self.atk.meta.name}")
             self.atk_saved = True
         except KeyError:
@@ -146,6 +152,7 @@ class MainWindow(QMainWindow):
             err.showMessage("Attack was invalid.")
         except FileNotFoundError:
             pass
+        self.loading = False
 
     def save_attack(self):
         if self.atk_path == "":
@@ -283,7 +290,7 @@ class MainWindow(QMainWindow):
             new_value_item = QTableWidgetItem(new_value)
             self.var_table.setItem(new_row_idx, 0, new_name_item)
             self.var_table.setItem(new_row_idx, 1, new_value_item)
-            # self.var_table.scrollToItem(new_name_item)
+            self.var_table.scrollToItem(new_name_item)
             self.atk.variables.update(new_var)
         except AttributeError:
             QErrorMessage(self).showMessage("Please Open or Make an attack first.")
@@ -297,10 +304,19 @@ class MainWindow(QMainWindow):
             self.var_table.removeRow(idx)
 
     def var_load(self):
-        # TODO: Implement me
-        pass
+        self.var_table.setRowCount(0)
+        to_load = self.atk.variables.keys()
+        for i in to_load:
+            new_row_idx = self.var_table.rowCount()
+            self.var_table.insertRow(new_row_idx)
+            new_name_item = QTableWidgetItem(i)
+            new_value_item = QTableWidgetItem(self.atk.variables[i])
+            self.var_table.setItem(new_row_idx, 0, new_name_item)
+            self.var_table.setItem(new_row_idx, 1, new_value_item)
 
     def var_changed(self, row, column):
+        if self.loading:
+            return
         try:
             if column == 0:
                 old_name = self.var_old_content
@@ -316,8 +332,14 @@ class MainWindow(QMainWindow):
         except KeyError:  # Removes
             pass
 
-    def var_entered(self, row, column):
-        self.var_old_content = self.var_table.item(row, column).text()
+    def var_entered(self):
+        try:
+            current = self.var_table.selectedItems()[0]
+            row = self.var_table.row(current)
+            column = self.var_table.column(current)
+            self.var_old_content = self.var_table.item(row, column).text()
+        except IndexError:
+            pass
 
     def run_start_attack(self):
         self.run_scriptout.document().setPlainText("")
