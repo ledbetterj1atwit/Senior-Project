@@ -29,6 +29,8 @@ class CreateAttackDlg(QDialog):
         main_window.setWindowTitle(f"APT - *{main_window.atk.meta.name}")
         self.parent().script_clear()
         self.parent().var_load()
+        self.parent().doc_clear()
+        self.parent().gen_clear()
         super().accept()
 
 
@@ -44,11 +46,146 @@ class AttackUnsavedDlg(QDialog):
         self.parent().save_attack_as()
 
 
+class ScriptWorkerSignals(QObject):
+    # Signals
+    change_statusline: pyqtSignal = pyqtSignal(str)
+    append_scriptout: pyqtSignal = pyqtSignal(str)
+    append_output: pyqtSignal = pyqtSignal(attack.SectionOutput)
+    append_scriptout_from_section: pyqtSignal = pyqtSignal()
+    finished: pyqtSignal = pyqtSignal()
+
+
+# noinspection PyUnresolvedReferences
+class ScriptWorker(QRunnable):
+    def __init__(self, app_dir: str,
+                 atk_path: str,
+                 atk_name: str,
+                 sections: list[attack.SectionScript],
+                 prefix: str,
+                 postfix: str,
+                 varis: dict,
+                 *args, **kwargs):
+        super(ScriptWorker, self).__init__()
+        # Store constructor arguments (re-used for processing)
+        self.args = args
+        self.kwargs = kwargs
+        self.app_dir = app_dir
+        self.atk_path = atk_path
+        self.atk_name = atk_name
+        self.prefix = prefix
+        self.postfix = postfix
+        self.sections = sections
+        self.vars = varis
+        self.signals = ScriptWorkerSignals()
+        self.paused = False
+        self.killed = False
+
+    @staticmethod
+    def clean_stderr(stderr: str) -> str:
+        err_lines = stderr.split("\r\n")
+        for i in reversed(range(len(err_lines))):
+            if re.match("^Could Not Find.*nv$", err_lines[i]):
+                err_lines.pop(i)
+            elif "The system cannot find the file nv." == err_lines[i]:
+                err_lines.pop(i)
+        return "\r\n".join(err_lines)
+
+    @pyqtSlot()
+    def run(self):
+        try:
+            for section in self.sections:
+                self.signals.change_statusline.emit(f"Running section: {section.name}")
+                atk_dir = os.path.dirname(os.path.abspath(self.atk_path))
+                os.chdir(atk_dir)  # Operating from atk dir.
+                vars_str = self.from_vars()
+                scr_path = ""
+                if section.section_type is attack.ScriptSectionType.EMPTY:
+                    continue
+                elif section.section_type is attack.ScriptSectionType.EMBEDDED:
+                    scr_path = f"{self.atk_name}_{section.section_id}.bat"
+                    with open(scr_path, "w") as f:
+                        if section.section_id == 0:
+                            f.write(self.prefix +
+                                    vars_str +
+                                    section.content +
+                                    self.postfix.replace("diff.exe", f"{self.app_dir}\\diff.exe")
+                                    )
+                        else:
+                            f.write(self.prefix +
+                                    section.content +
+                                    self.postfix.replace("diff.exe", f"{self.app_dir}\\diff.exe")
+                                    )
+                elif section.section_type is attack.ScriptSectionType.REFERENCE:
+                    org_scr_path = f"{section.content}"
+                    scr_path = f"{self.atk_name}_{section.section_id}.bat"
+                    with open(org_scr_path, "r") as o:
+                        with open(scr_path, "w") as f:
+                            if section.section_id == 0:
+                                f.write(self.prefix +
+                                        vars_str +
+                                        o.read() +
+                                        self.postfix.replace("diff.exe", f"{self.app_dir}\\diff.exe")
+                                        )
+                            else:
+                                f.write(self.prefix +
+                                        o.read() +
+                                        self.postfix.replace("diff.exe", f"{self.app_dir}\\diff.exe")
+                                        )
+                if self.killed:  # Exitpoint
+                    return
+                shell_out = subprocess.run([scr_path], shell=False, capture_output=True)
+                if self.killed:  # Exitpoint
+                    return
+                self.signals.append_scriptout.emit(f"{'=' * 10}\nSection: {section.name}\n{'=' * 10}")
+                self.signals.append_output.emit(attack.SectionOutput(
+                    section.section_id,
+                    shell_out.stdout.decode("UTF-8"),
+                    self.clean_stderr(shell_out.stderr.decode("UTF-8"))
+                ))
+                self.signals.append_scriptout_from_section.emit()
+                if section.section_type is attack.ScriptSectionType.EMBEDDED:
+                    os.remove(scr_path)
+                while self.paused:
+                    pass  # Sit and wait.
+            os.remove("nv")
+        except AttributeError:
+            return
+        except FileNotFoundError:
+            pass
+        finally:
+            os.chdir(self.app_dir)
+            self.signals.finished.emit()
+
+    @pyqtSlot()
+    def pause(self):
+        self.paused = True
+
+    @pyqtSlot()
+    def unpause(self):
+        self.paused = False
+
+    @pyqtSlot()
+    def kill(self):
+        self.killed = True
+
+    def from_vars(self):
+        content = ""
+        for i in self.vars.keys():
+            if " " in self.vars[i]:
+                content += f"set {i}=\"{self.vars[i]}\"\n"
+            else:
+                content += f"set {i}={self.vars[i]}\n"
+        return content
+
+
+# noinspection PyUnresolvedReferences
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Thread Pool
+        # So pycharm doesn't complain...
+        self.var_old_content = None
         self.loading: bool = False
+        # Thread Pool
         self.pool = QThreadPool()
         self.workers: list[ScriptWorker] = []
         self.run_paused = False
@@ -107,11 +244,13 @@ class MainWindow(QMainWindow):
         self.doc_section_content.textChanged.connect(self.doc_update_current)
         self.pattern_regex.textChanged.connect(self.pattern_set_current)
         self.pattern_content.textChanged.connect(self.pattern_set_current)
+        self.gen_quick_edit.textChanged.connect(self.gen_update_current)
         # Item Lists
         self.script_section_list.itemSelectionChanged.connect(self.script_read_current)
         self.doc_section_list.itemSelectionChanged.connect(self.doc_read_current)
         self.var_table.itemSelectionChanged.connect(self.var_entered)
         self.var_table.cellChanged.connect(self.var_changed)
+        self.gen_section_list.itemSelectionChanged.connect(self.gen_read_current)
         # Spinner
         movie = QMovie("ui/skull.gif")
         movie.setScaledSize(QSize(50, 50))
@@ -292,6 +431,7 @@ class MainWindow(QMainWindow):
             self.var_table.setItem(new_row_idx, 1, new_value_item)
             self.var_table.scrollToItem(new_name_item)
             self.atk.variables.update(new_var)
+            self.mark_unsaved_changes()
         except AttributeError:
             QErrorMessage(self).showMessage("Please Open or Make an attack first.")
 
@@ -302,6 +442,7 @@ class MainWindow(QMainWindow):
             var_to_remove = self.var_table.item(idx, 0).text()
             self.atk.variables.pop(var_to_remove)
             self.var_table.removeRow(idx)
+        self.mark_unsaved_changes()
 
     def var_load(self):
         self.var_table.setRowCount(0)
@@ -331,6 +472,7 @@ class MainWindow(QMainWindow):
             pass
         except KeyError:  # Removes
             pass
+        self.mark_unsaved_changes()
 
     def var_entered(self):
         try:
@@ -416,6 +558,7 @@ class MainWindow(QMainWindow):
                                                                  "",
                                                                  []))
         self.doc_section_list.addItem(f"{new_id}: Unnamed Section")
+        self.gen_load()
         self.mark_unsaved_changes()
 
     def doc_section_add_existing(self, section: attack.SectionDocument):
@@ -428,7 +571,8 @@ class MainWindow(QMainWindow):
                 self.atk.document.sections.pop(i)
                 self.doc_section_list.takeItem(i)
                 self.doc_section_list.setCurrentRow(selected_indexes[0] - 1)
-                self.mark_unsaved_changes()
+            self.gen_load()
+            self.mark_unsaved_changes()
         except IndexError:
             return
 
@@ -452,6 +596,7 @@ class MainWindow(QMainWindow):
             elif self.doc_section_type.currentIndex() == 3:
                 current.section_type = attack.DocumentSectionType.PATTERN
             self.pattern_load()
+            self.gen_load()
             self.mark_unsaved_changes()
         except IndexError:
             if self.atk is None:
@@ -528,7 +673,7 @@ class MainWindow(QMainWindow):
         current = None
         try:
             current_idx = [self.doc_section_list.row(i) for i in self.doc_section_list.selectedItems()][0]
-            current: attack.SectionDocument = self.atk.document.sections[current_idx]
+            current = self.atk.document.sections[current_idx]
             pattern_idx = self.pattern_select.currentIndex()
             current.patterns[pattern_idx].pattern_str = self.pattern_regex.text()
             current.patterns[pattern_idx].match_content = self.pattern_content.text()
@@ -550,142 +695,51 @@ class MainWindow(QMainWindow):
             else:
                 QErrorMessage(self).showMessage("Please add and select at least one pattern.")
 
+    def gen_load(self):
+        self.gen_clear()
+        for section in self.atk.document.sections:
+            self.gen_section_list.addItem(f"{section.section_id}: {section.name}")
+
+    def gen_clear(self):
+        self.gen_section_list.clear()
+
+    def gen_read_current(self):
+        try:
+            current_index = [self.gen_section_list.row(i) for i in self.gen_section_list.selectedItems()][0]
+            current = self.atk.document.sections[current_index]
+            self.gen_quick_edit.document().setPlainText(current.content)
+        except IndexError:
+            pass
+
+    def gen_update_current(self):
+        try:
+            current_index = [self.gen_section_list.row(i) for i in self.gen_section_list.selectedItems()][0]
+            current = self.atk.document.sections[current_index]
+            current.content = self.gen_quick_edit.document().toPlainText()
+            self.mark_unsaved_changes()
+        except IndexError:
+            if self.atk is None:
+                QErrorMessage(self).showMessage("Please Open or Make an attack first.")
+            else:
+                QErrorMessage(self).showMessage("Please add at least one document section and select it here.")
+
+    def gen_refresh(self):
+        pass
+
+    def gen_generate(self):
+        pass
+
+    def gen_preview_next(self):
+        pass
+
+    def gen_preview_prev(self):
+        pass
+
     def app_quit(self):
         if not self.atk_saved:
             AttackUnsavedDlg(self).show()
         else:
             QCoreApplication.quit()
-
-
-class ScriptWorkerSignals(QObject):
-    # Signals
-    change_statusline: pyqtSignal = pyqtSignal(str)
-    append_scriptout: pyqtSignal = pyqtSignal(str)
-    append_output: pyqtSignal = pyqtSignal(attack.SectionOutput)
-    append_scriptout_from_section: pyqtSignal = pyqtSignal()
-    finished: pyqtSignal = pyqtSignal()
-
-
-class ScriptWorker(QRunnable):
-    def __init__(self, app_dir: str,
-                 atk_path: str,
-                 atk_name: str,
-                 sections: list[attack.SectionScript],
-                 prefix: str,
-                 postfix: str,
-                 vars: dict,
-                 *args, **kwargs):
-        super(ScriptWorker, self).__init__()
-        # Store constructor arguments (re-used for processing)
-        self.args = args
-        self.kwargs = kwargs
-        self.app_dir = app_dir
-        self.atk_path = atk_path
-        self.atk_name = atk_name
-        self.prefix = prefix
-        self.postfix = postfix
-        self.sections = sections
-        self.vars = vars
-        self.signals = ScriptWorkerSignals()
-        self.paused = False
-        self.killed = False
-
-    @staticmethod
-    def clean_stderr(stderr: str) -> str:
-        err_lines = stderr.split("\r\n")
-        for i in reversed(range(len(err_lines))):
-            if re.match("^Could Not Find.*nv$", err_lines[i]):
-                err_lines.pop(i)
-            elif "The system cannot find the file nv." == err_lines[i]:
-                err_lines.pop(i)
-        return "\r\n".join(err_lines)
-
-    @pyqtSlot()
-    def run(self):
-        try:
-            for section in self.sections:
-                self.signals.change_statusline.emit(f"Running section: {section.name}")
-                atk_dir = os.path.dirname(os.path.abspath(self.atk_path))
-                os.chdir(atk_dir)  # Operating from atk dir.
-                vars_str = self.from_vars()
-                scr_path = ""
-                if section.section_type is attack.ScriptSectionType.EMPTY:
-                    continue
-                elif section.section_type is attack.ScriptSectionType.EMBEDDED:
-                    scr_path = f"{self.atk_name}_{section.section_id}.bat"
-                    with open(scr_path, "w") as f:
-                        if section.section_id == 0:
-                            f.write(self.prefix +
-                                    vars_str +
-                                    section.content +
-                                    self.postfix.replace("diff.exe", f"{self.app_dir}\\diff.exe")
-                                    )
-                        else:
-                            f.write(self.prefix +
-                                    section.content +
-                                    self.postfix.replace("diff.exe", f"{self.app_dir}\\diff.exe")
-                                    )
-                elif section.section_type is attack.ScriptSectionType.REFERENCE:
-                    org_scr_path = f"{section.content}"
-                    scr_path = f"{self.atk_name}_{section.section_id}.bat"
-                    with open(org_scr_path, "r") as o:
-                        with open(scr_path, "w") as f:
-                            if section.section_id == 0:
-                                f.write(self.prefix +
-                                        vars_str +
-                                        o.read() +
-                                        self.postfix.replace("diff.exe", f"{self.app_dir}\\diff.exe")
-                                        )
-                            else:
-                                f.write(self.prefix +
-                                        o.read() +
-                                        self.postfix.replace("diff.exe", f"{self.app_dir}\\diff.exe")
-                                        )
-                if self.killed:  # Exitpoint
-                    return
-                shell_out = subprocess.run([scr_path], shell=False, capture_output=True)
-                if self.killed:  # Exitpoint
-                    return
-                self.signals.append_scriptout.emit(f"{'=' * 10}\nSection: {section.name}\n{'=' * 10}")
-                self.signals.append_output.emit(attack.SectionOutput(
-                    section.section_id,
-                    shell_out.stdout.decode("UTF-8"),
-                    self.clean_stderr(shell_out.stderr.decode("UTF-8"))
-                ))
-                self.signals.append_scriptout_from_section.emit()
-                if section.section_type is attack.ScriptSectionType.EMBEDDED:
-                    os.remove(scr_path)
-                while self.paused:
-                    pass  # Sit and wait.
-            os.remove("nv")
-        except AttributeError:
-            return
-        except FileNotFoundError:
-            pass
-        finally:
-            os.chdir(self.app_dir)
-            self.signals.finished.emit()
-
-    @pyqtSlot()
-    def pause(self):
-        self.paused = True
-
-    @pyqtSlot()
-    def unpause(self):
-        self.paused = False
-
-    @pyqtSlot()
-    def kill(self):
-        self.killed = True
-
-    def from_vars(self):
-        content = ""
-        for i in self.vars.keys():
-            if " " in self.vars[i]:
-                content += f"set {i}=\"{self.vars[i]}\"\n"
-            else:
-                content += f"set {i}={self.vars[i]}\n"
-        return content
 
 
 if __name__ == "__main__":

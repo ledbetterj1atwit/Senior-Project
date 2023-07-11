@@ -22,7 +22,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="script_build">
        <attribute name="title">
@@ -718,7 +718,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                  <string>&amp;Sections</string>
                 </property>
                 <property name="buddy">
-                 <cstring>document_generate_section_list</cstring>
+                 <cstring>gen_section_list</cstring>
                 </property>
                </widget>
               </item>
@@ -738,7 +738,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_12">
                   <item>
-                   <widget class="QListWidget" name="document_generate_section_list">
+                   <widget class="QListWidget" name="gen_section_list">
                     <property name="alternatingRowColors">
                      <bool>true</bool>
                     </property>
@@ -766,12 +766,12 @@ li.checked::marker { content: &quot;\2612&quot;; }
                  <string>LaTeX &amp;quick edit</string>
                 </property>
                 <property name="buddy">
-                 <cstring>textEdit</cstring>
+                 <cstring>gen_quick_edit</cstring>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QTextEdit" name="textEdit">
+               <widget class="QTextEdit" name="gen_quick_edit">
                 <property name="html">
                  <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -788,14 +788,14 @@ li.checked::marker { content: &quot;\2612&quot;; }
                <widget class="QWidget" name="widget" native="true">
                 <layout class="QVBoxLayout" name="verticalLayout_15">
                  <item>
-                  <widget class="QPushButton" name="pushButton_5">
+                  <widget class="QPushButton" name="gen_button_refresh">
                    <property name="text">
-                    <string>Refresh</string>
+                    <string>Refresh Preview</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="pushButton_6">
+                  <widget class="QPushButton" name="gen_button_generate">
                    <property name="text">
                     <string>&amp;Generate Document</string>
                    </property>
@@ -816,25 +816,25 @@ li.checked::marker { content: &quot;\2612&quot;; }
                  <string>Document &amp;Preview</string>
                 </property>
                 <property name="buddy">
-                 <cstring>graphicsView</cstring>
+                 <cstring>gen_pageview</cstring>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QGraphicsView" name="graphicsView"/>
+               <widget class="QGraphicsView" name="gen_pageview"/>
               </item>
               <item>
                <widget class="QWidget" name="page_buttons" native="true">
                 <layout class="QHBoxLayout" name="horizontalLayout_15">
                  <item>
-                  <widget class="QPushButton" name="prev_page">
+                  <widget class="QPushButton" name="gen_button_prev">
                    <property name="text">
                     <string>&lt;</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="next_page">
+                  <widget class="QPushButton" name="gen_button_next">
                    <property name="text">
                     <string>&gt;</string>
                    </property>
@@ -850,7 +850,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="statusline">
+         <widget class="QLabel" name="gen_statusline">
           <property name="font">
            <font>
             <pointsize>15</pointsize>
@@ -971,14 +971,14 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <tabstop>doc_section_type</tabstop>
   <tabstop>doc_section_name</tabstop>
   <tabstop>doc_section_content</tabstop>
-  <tabstop>document_generate_section_list</tabstop>
+  <tabstop>gen_section_list</tabstop>
   <tabstop>scrollArea_6</tabstop>
-  <tabstop>textEdit</tabstop>
-  <tabstop>pushButton_5</tabstop>
-  <tabstop>pushButton_6</tabstop>
-  <tabstop>graphicsView</tabstop>
-  <tabstop>prev_page</tabstop>
-  <tabstop>next_page</tabstop>
+  <tabstop>gen_quick_edit</tabstop>
+  <tabstop>gen_button_refresh</tabstop>
+  <tabstop>gen_button_generate</tabstop>
+  <tabstop>gen_pageview</tabstop>
+  <tabstop>gen_button_prev</tabstop>
+  <tabstop>gen_button_next</tabstop>
  </tabstops>
  <resources/>
  <connections/>
