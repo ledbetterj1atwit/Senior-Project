@@ -42,12 +42,12 @@ def create_section(doc: pylatex.Document, atk: Attack, document_section_id: int)
             section = d_s
             break
     with doc.create(pylatex.Section(section.name)):
-        if section.section_type is DocumentSectionType.REFERENCE:
+        if section.section_type == DocumentSectionType.REFERENCE:
             with open(section.content, "r") as f:
                 doc.append(f.read())
-        elif section.section_type is DocumentSectionType.LITERAL:
+        elif section.section_type == DocumentSectionType.LITERAL:
             doc.append(section.content)
-        elif section.section_type is DocumentSectionType.PATTERN:
+        elif section.section_type == DocumentSectionType.PATTERN:
             matching = get_matching_patterns(atk, document_section_id)
             print(matching)
             to_add = str(section.content)  # I want a copy of the content string.
@@ -69,6 +69,19 @@ def create_section(doc: pylatex.Document, atk: Attack, document_section_id: int)
         doc.pop(-1)
 
 
+def create_section_preview(atk: Attack, section_id: int, path: str):
+    document = pylatex.Document()
+    create_section(document, atk, section_id)
+    document.generate_pdf(path, clean_tex=True)
+
+
+def create_report(atk: Attack, path: str):
+    document = pylatex.Document()
+    for section in atk.document.sections:
+        create_section(document, atk, section.section_id)
+    document.generate_pdf(path, clean_tex=True)
+
+
 if __name__ == "__main__":
     path = "doc_gen.pdf"
     attack_path = "../gen.atk"
@@ -78,7 +91,7 @@ if __name__ == "__main__":
         pass
     document = pylatex.Document()
     atk = Attack.load(attack_path)
-    for idx in range(1, len(atk.document.sections)+1):
+    for idx in range(1, len(atk.document.sections) + 1):
         create_section(document, atk, idx)
 
     document.generate_pdf(path, clean_tex=False)

@@ -84,6 +84,9 @@ class DocumentSectionType(Enum):
     PATTERN = "Pattern"  # Use pattern rules.
     COMBINED = "Combined"  # Use a mix of the above.
 
+    def __eq__(self, other):
+        return self.value == other.value
+
 
 class PatternBehavior(Enum):
     REPLACE = "Replace"  # Replace content with match content.

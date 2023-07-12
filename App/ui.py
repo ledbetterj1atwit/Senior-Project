@@ -2,7 +2,7 @@ import re
 import sys
 import os
 import webbrowser
-from typing import Optional
+from typing import Optional, Union
 
 from PyQt6 import uic
 from PyQt6.QtCore import QCoreApplication, QRunnable, QThreadPool, pyqtSlot, QSize, QObject, pyqtSignal
@@ -10,6 +10,7 @@ from PyQt6.QtGui import QKeySequence, QMovie
 from PyQt6.QtWidgets import QDialog, QFileDialog, QErrorMessage, QApplication, QMainWindow, QTableWidgetItem
 
 import attack
+import LaTeX.doc_gen as DocGen
 import subprocess
 
 
@@ -178,6 +179,35 @@ class ScriptWorker(QRunnable):
         return content
 
 
+class DocumentWorkerSignals(QObject):
+    change_statusline: pyqtSignal = pyqtSignal(str)
+    finished: pyqtSignal = pyqtSignal(int)
+
+
+class DocumentWorker(QRunnable):
+    def __init__(self, section: int, path: str, atk: attack.Attack):
+        self.signals = DocumentWorkerSignals()
+        self.section = section  # -1 for full document, positive int for specific section.
+        self.path = path[:-4]
+        self.atk = atk
+        super(DocumentWorker, self).__init__()
+
+    def run(self):
+        self.signals.change_statusline.emit("Starting.")
+        if self.section >= 0:
+            self.signals.change_statusline.emit(
+                f"Generating preview for section: {self.atk.document.sections[self.section]}."
+            )
+            DocGen.create_section_preview(self.atk, self.section, self.path)
+        else:
+            self.signals.change_statusline.emit("Generating report.")
+            DocGen.create_report(self.atk, self.path)
+        self.signals.change_statusline.emit("Done.")
+        self.signals.finished.emit(self.section)
+
+
+
+
 # noinspection PyUnresolvedReferences
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -187,7 +217,7 @@ class MainWindow(QMainWindow):
         self.loading: bool = False
         # Thread Pool
         self.pool = QThreadPool()
-        self.workers: list[ScriptWorker] = []
+        self.workers: Union[list[ScriptWorker], list[DocumentWorker]] = []
         self.run_paused = False
         print(f"Using up to {self.pool.maxThreadCount()} thread(s)")
         # Dialogs
@@ -220,6 +250,8 @@ class MainWindow(QMainWindow):
         self.actionRun_Attack.setShortcut(QKeySequence("F5"))
         self.actionManual.triggered.connect(self.open_manual)
         self.actionManual.setShortcut(QKeySequence("F1"))
+        self.actionGenerate_Doc.triggered.connect(self.gen_generate)
+        self.actionGenerate_Doc.setShortcut(QKeySequence("F6"))
         # Buttons
         self.script_section_add.clicked.connect(self.script_section_add_new)
         self.script_section_remove.clicked.connect(self.script_section_remove_selected)
@@ -232,6 +264,7 @@ class MainWindow(QMainWindow):
         self.run_button.clicked.connect(self.actionRun_Attack.trigger)
         self.run_pause_button.clicked.connect(self.run_pause)
         self.run_stop_button.clicked.connect(self.run_stop)
+        self.gen_button_generate.clicked.connect(self.gen_generate)
         # Combo Boxes
         self.script_section_type.currentIndexChanged.connect(self.script_update_current)
         self.doc_section_type.currentIndexChanged.connect(self.doc_update_current)
@@ -283,6 +316,7 @@ class MainWindow(QMainWindow):
             for doc_section in self.atk.document.sections:
                 self.doc_section_add_existing(doc_section)
             self.var_load()
+            self.gen_load()
             self.setWindowTitle(f"APT - {self.atk.meta.name}")
             self.atk_saved = True
         except KeyError:
@@ -727,7 +761,24 @@ class MainWindow(QMainWindow):
         pass
 
     def gen_generate(self):
-        pass
+        self.gen_button_generate.setDisabled(True)
+        self.gen_button_refresh.setDisabled(True)
+        worker = DocumentWorker(-1, self.atk_path, self.atk)
+        self.workers.append(worker)
+        worker.signals.change_statusline.connect(self.gen_set_statusline)
+        worker.signals.finished.connect(self.gen_finished)
+        self.pool.start(worker)
+
+    def gen_finished(self, section: int):
+        if section >= 0:
+            print("Section preview not finished.")
+        else:
+            pass
+        self.gen_button_generate.setDisabled(False)
+        self.gen_button_refresh.setDisabled(False)
+
+    def gen_set_statusline(self, text: str):
+        self.gen_statusline.setText(text)
 
     def gen_preview_next(self):
         pass
