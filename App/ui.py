@@ -10,7 +10,7 @@ from PyQt6.QtGui import QKeySequence, QMovie
 from PyQt6.QtWidgets import QDialog, QFileDialog, QErrorMessage, QApplication, QMainWindow, QTableWidgetItem
 
 import attack
-import LaTeX.doc_gen as DocGen
+import doc_gen as docgen
 import subprocess
 
 
@@ -64,7 +64,7 @@ class ScriptWorker(QRunnable):
                  sections: list[attack.SectionScript],
                  prefix: str,
                  postfix: str,
-                 varis: dict,
+                 variables: dict,
                  *args, **kwargs):
         super(ScriptWorker, self).__init__()
         # Store constructor arguments (re-used for processing)
@@ -76,7 +76,7 @@ class ScriptWorker(QRunnable):
         self.prefix = prefix
         self.postfix = postfix
         self.sections = sections
-        self.vars = varis
+        self.vars = variables
         self.signals = ScriptWorkerSignals()
         self.paused = False
         self.killed = False
@@ -132,10 +132,10 @@ class ScriptWorker(QRunnable):
                                         o.read() +
                                         self.postfix.replace("diff.exe", f"{self.app_dir}\\diff.exe")
                                         )
-                if self.killed:  # Exitpoint
+                if self.killed:  # Exit-point
                     return
                 shell_out = subprocess.run([scr_path], shell=False, capture_output=True)
-                if self.killed:  # Exitpoint
+                if self.killed:  # Exit-point
                     return
                 self.signals.append_scriptout.emit(f"{'=' * 10}\nSection: {section.name}\n{'=' * 10}")
                 self.signals.append_output.emit(attack.SectionOutput(
@@ -185,27 +185,30 @@ class DocumentWorkerSignals(QObject):
 
 
 class DocumentWorker(QRunnable):
-    def __init__(self, section: int, path: str, atk: attack.Attack):
+    def __init__(self, section: int, filename: str, atk_path: str, atk: attack.Attack, app_dir: str):
         self.signals = DocumentWorkerSignals()
         self.section = section  # -1 for full document, positive int for specific section.
-        self.path = path[:-4]
+        self.filename = filename
+        self.atk_path = atk_path
         self.atk = atk
+        self.app_dir = app_dir
         super(DocumentWorker, self).__init__()
 
     def run(self):
         self.signals.change_statusline.emit("Starting.")
+        atk_dir = os.path.dirname(os.path.abspath(self.atk_path))
+        os.chdir(atk_dir)
         if self.section >= 0:
             self.signals.change_statusline.emit(
-                f"Generating preview for section: {self.atk.document.sections[self.section]}."
+                f"Generating preview for section: {self.atk.document.sections[self.section].name}."
             )
-            DocGen.create_section_preview(self.atk, self.section, self.path)
+            docgen.create_section_preview(self.atk, self.section, self.filename)
         else:
             self.signals.change_statusline.emit("Generating report.")
-            DocGen.create_report(self.atk, self.path)
+            docgen.create_report(self.atk, self.filename)
+        os.chdir(self.app_dir)
         self.signals.change_statusline.emit("Done.")
         self.signals.finished.emit(self.section)
-
-
 
 
 # noinspection PyUnresolvedReferences
@@ -217,7 +220,7 @@ class MainWindow(QMainWindow):
         self.loading: bool = False
         # Thread Pool
         self.pool = QThreadPool()
-        self.workers: Union[list[ScriptWorker], list[DocumentWorker]] = []
+        self.workers: list[Union[ScriptWorker, DocumentWorker]] = []
         self.run_paused = False
         print(f"Using up to {self.pool.maxThreadCount()} thread(s)")
         # Dialogs
@@ -265,6 +268,7 @@ class MainWindow(QMainWindow):
         self.run_pause_button.clicked.connect(self.run_pause)
         self.run_stop_button.clicked.connect(self.run_stop)
         self.gen_button_generate.clicked.connect(self.gen_generate)
+        self.gen_button_refresh.clicked.connect(self.gen_refresh)
         # Combo Boxes
         self.script_section_type.currentIndexChanged.connect(self.script_update_current)
         self.doc_section_type.currentIndexChanged.connect(self.doc_update_current)
@@ -471,7 +475,7 @@ class MainWindow(QMainWindow):
 
     def var_remove(self):
         to_remove = [i.row() for i in self.var_table.selectedIndexes()]
-        to_remove = reversed(list(set(to_remove)))  # Remove dups, sort, reverse.
+        to_remove = reversed(list(set(to_remove)))  # Remove duplicates, sort, reverse.
         for idx in to_remove:
             var_to_remove = self.var_table.item(idx, 0).text()
             self.atk.variables.pop(var_to_remove)
@@ -758,16 +762,37 @@ class MainWindow(QMainWindow):
                 QErrorMessage(self).showMessage("Please add at least one document section and select it here.")
 
     def gen_refresh(self):
-        pass
-
+        try:
+            self.gen_button_generate.setDisabled(True)
+            self.gen_button_refresh.setDisabled(True)
+            current_index = [self.gen_section_list.row(i) for i in self.gen_section_list.selectedItems()][0]
+            current = self.atk.document.sections[current_index]
+            filename = f"{self.atk.meta.name}_section_{current.section_id}"
+            worker = DocumentWorker(current.section_id, filename, self.atk_path, self.atk, self.app_dir)
+            self.workers.append(worker)
+            worker.signals.change_statusline.connect(self.gen_set_statusline)
+            worker.signals.finished.connect(self.gen_finished)
+            self.pool.start(worker)
+        except IndexError:
+            if self.atk is None:
+                QErrorMessage(self).showMessage("Please Open or Make an attack first.")
+            else:
+                QErrorMessage(self).showMessage("Please add at least one document section and select it here.")
+            self.gen_button_generate.setDisabled(False)
+            self.gen_button_refresh.setDisabled(False)
     def gen_generate(self):
-        self.gen_button_generate.setDisabled(True)
-        self.gen_button_refresh.setDisabled(True)
-        worker = DocumentWorker(-1, self.atk_path, self.atk)
-        self.workers.append(worker)
-        worker.signals.change_statusline.connect(self.gen_set_statusline)
-        worker.signals.finished.connect(self.gen_finished)
-        self.pool.start(worker)
+        try:
+            self.gen_button_generate.setDisabled(True)
+            self.gen_button_refresh.setDisabled(True)
+            worker = DocumentWorker(-1, self.atk.meta.name, self.atk_path, self.atk, self.app_dir)
+            self.workers.append(worker)
+            worker.signals.change_statusline.connect(self.gen_set_statusline)
+            worker.signals.finished.connect(self.gen_finished)
+            self.pool.start(worker)
+        except AttributeError:
+            QErrorMessage(self).showMessage("Please Open or Make an attack first.")
+            self.gen_button_generate.setDisabled(False)
+            self.gen_button_refresh.setDisabled(False)
 
     def gen_finished(self, section: int):
         if section >= 0:
@@ -794,6 +819,7 @@ class MainWindow(QMainWindow):
 
 
 if __name__ == "__main__":
+
     app = QApplication(sys.argv)
     window = MainWindow()
     window.app_dir = os.path.dirname(os.path.abspath(__file__))

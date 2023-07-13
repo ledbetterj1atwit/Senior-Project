@@ -1,8 +1,7 @@
 import pylatex
-from sys import argv
+import sys
 import re
-
-from App.attack import Attack, SectionDocument, DocumentSectionType, Pattern, PatternBehavior
+from attack import Attack, SectionDocument, DocumentSectionType, Pattern, PatternBehavior
 
 
 class EndDocumentException(Exception):
@@ -49,7 +48,6 @@ def create_section(doc: pylatex.Document, atk: Attack, document_section_id: int)
             doc.append(section.content)
         elif section.section_type == DocumentSectionType.PATTERN:
             matching = get_matching_patterns(atk, document_section_id)
-            print(matching)
             to_add = str(section.content)  # I want a copy of the content string.
             for match in matching:
                 if match.behavior is PatternBehavior.ADD:
@@ -72,7 +70,7 @@ def create_section(doc: pylatex.Document, atk: Attack, document_section_id: int)
 def create_section_preview(atk: Attack, section_id: int, path: str):
     document = pylatex.Document()
     create_section(document, atk, section_id)
-    document.generate_pdf(path, clean_tex=True)
+    document.generate_pdf(path, clean_tex=True, compiler="pdflatex.exe")
 
 
 def create_report(atk: Attack, path: str):
@@ -84,9 +82,9 @@ def create_report(atk: Attack, path: str):
 
 if __name__ == "__main__":
     path = "doc_gen.pdf"
-    attack_path = "../gen.atk"
+    attack_path = "gen.atk"
     try:
-        path = argv[1]
+        path = sys.argv[1]
     except IndexError:
         pass
     document = pylatex.Document()
