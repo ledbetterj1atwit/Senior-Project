@@ -22,7 +22,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="script_build">
        <attribute name="title">
@@ -813,15 +813,22 @@ li.checked::marker { content: &quot;\2612&quot;; }
               <item>
                <widget class="QLabel" name="label_10">
                 <property name="text">
-                 <string>Document &amp;Preview</string>
-                </property>
-                <property name="buddy">
-                 <cstring>gen_pageview</cstring>
+                 <string>Document Preview</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QGraphicsView" name="gen_pageview"/>
+               <widget class="QLabel" name="gen_pageview">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="pixmap">
+                 <pixmap>no_preview.png</pixmap>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="QWidget" name="page_buttons" native="true">
@@ -976,7 +983,6 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <tabstop>gen_quick_edit</tabstop>
   <tabstop>gen_button_refresh</tabstop>
   <tabstop>gen_button_generate</tabstop>
-  <tabstop>gen_pageview</tabstop>
   <tabstop>gen_button_prev</tabstop>
   <tabstop>gen_button_next</tabstop>
  </tabstops>

@@ -1,13 +1,15 @@
 import re
 import sys
 import os
+
+import fitz
 import pylatex
 import webbrowser
 from typing import Optional, Union
 
 from PyQt6 import uic
-from PyQt6.QtCore import QCoreApplication, QRunnable, QThreadPool, pyqtSlot, QSize, QObject, pyqtSignal
-from PyQt6.QtGui import QKeySequence, QMovie
+from PyQt6.QtCore import QCoreApplication, QRunnable, QThreadPool, pyqtSlot, QSize, QObject, pyqtSignal, QByteArray
+from PyQt6.QtGui import QKeySequence, QMovie, QPixmap
 from PyQt6.QtWidgets import QDialog, QFileDialog, QErrorMessage, QApplication, QMainWindow, QTableWidgetItem
 from pylatex import NoEscape
 
@@ -199,6 +201,7 @@ class ScriptWorker(QRunnable):
 
 class DocumentWorkerSignals(QObject):
     change_statusline: pyqtSignal = pyqtSignal(str)
+    new_preview: pyqtSignal = pyqtSignal(list)
     finished: pyqtSignal = pyqtSignal(int)
 
 
@@ -299,6 +302,11 @@ class DocumentWorker(QRunnable):
                     f"Generating preview for section: {self.atk.document.sections[self.section].name}."
                 )
                 self.create_section_preview(self.filename)
+                page_pix: list[QPixmap] = []
+                for page in fitz.open(self.filename+".pdf"):
+                    page_pix.append(QPixmap())
+                    page_pix[-1].loadFromData(QByteArray(page.get_pixmap().pil_tobytes(format="JPEG")), format="JPEG")
+                self.signals.new_preview.emit(page_pix)
             else:
                 self.signals.change_statusline.emit("Generating report.")
                 self.create_report(self.filename)
@@ -318,6 +326,8 @@ class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # So pycharm doesn't complain...
+        self.gen_pix = None
+        self.gen_cur_pic = None
         self.var_old_content = None
         self.loading: bool = False
         # Thread Pool
@@ -371,6 +381,11 @@ class MainWindow(QMainWindow):
         self.run_stop_button.clicked.connect(self.run_stop)
         self.gen_button_generate.clicked.connect(self.gen_generate)
         self.gen_button_refresh.clicked.connect(self.gen_refresh)
+        self.gen_button_next.clicked.connect(self.gen_preview_next)
+        self.gen_button_prev.clicked.connect(self.gen_preview_prev)
+
+
+
         # Combo Boxes
         self.script_section_type.currentIndexChanged.connect(self.script_update_current)
         self.doc_section_type.currentIndexChanged.connect(self.doc_update_current)
@@ -874,6 +889,7 @@ class MainWindow(QMainWindow):
             self.workers.append(worker)
             worker.signals.change_statusline.connect(self.gen_set_statusline)
             worker.signals.finished.connect(self.gen_finished)
+            worker.signals.new_preview.connect(self.gen_new_pix)
             self.pool.start(worker)
         except IndexError:
             if self.atk is None:
@@ -908,11 +924,18 @@ class MainWindow(QMainWindow):
     def gen_set_statusline(self, text: str):
         self.gen_statusline.setText(text)
 
+    def gen_new_pix(self, pix: list[QPixmap]):
+        self.gen_cur_pic = 0
+        self.gen_pix = pix
+        self.gen_pageview.setPixmap(self.gen_pix[self.gen_cur_pic])
+
     def gen_preview_next(self):
-        pass
+        self.gen_cur_pic = (self.gen_cur_pic + 1) % len(self.gen_pix)
+        self.gen_pageview.setPixmap(self.gen_pix[self.gen_cur_pic])
 
     def gen_preview_prev(self):
-        pass
+        self.gen_cur_pic = (self.gen_cur_pic - 1) % len(self.gen_pix)
+        self.gen_pageview.setPixmap(self.gen_pix[self.gen_cur_pic])
 
     def app_quit(self):
         if not self.atk_saved:
