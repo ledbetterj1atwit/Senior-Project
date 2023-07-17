@@ -1,6 +1,7 @@
 import re
 import sys
 import os
+import pylatex
 import webbrowser
 from typing import Optional, Union
 
@@ -8,10 +9,27 @@ from PyQt6 import uic
 from PyQt6.QtCore import QCoreApplication, QRunnable, QThreadPool, pyqtSlot, QSize, QObject, pyqtSignal
 from PyQt6.QtGui import QKeySequence, QMovie
 from PyQt6.QtWidgets import QDialog, QFileDialog, QErrorMessage, QApplication, QMainWindow, QTableWidgetItem
+from pylatex import NoEscape
 
 import attack
-import doc_gen as docgen
 import subprocess
+
+
+class EndDocumentException(Exception):
+    def __init__(self, message="Document generation is ending early. Likely due to a pattern with END behavior."):
+        self.message = message
+
+
+class PatternErrorException(Exception):
+    def __init__(self,
+                 message="Document generation failed because an ERROR pattern matched, check your attack output."):
+        self.message = message
+
+
+class LatexException(Exception):
+    def __init__(self, message="Document generation failed, the LaTeX was invalid.", invalid_latex: str = ""):
+        self.message = message
+        self.invalid_latex = invalid_latex
 
 
 class CreateAttackDlg(QDialog):
@@ -194,20 +212,104 @@ class DocumentWorker(QRunnable):
         self.app_dir = app_dir
         super(DocumentWorker, self).__init__()
 
+    def get_matching_patterns(self, doc_section_id: int) -> list[attack.Pattern]:
+        output_section = None
+        doc_section = None
+        matching = []
+        for o_s in self.atk.output.sections:
+            if o_s.section_id == doc_section_id:
+                output_section = o_s
+                break
+        for d_s in self.atk.document.sections:
+            if d_s.section_id == doc_section_id:
+                doc_section = d_s
+                break
+        for pattern in doc_section.patterns:
+            if re.match(pattern.pattern_str, output_section.stdout):
+                matching.append(pattern)
+        return matching
+
+    def create_section(self, doc: pylatex.Document, document_section_id: int):
+        section = None
+        remove_section = False
+        for d_s in self.atk.document.sections:
+            if d_s.section_id == document_section_id:
+                section = d_s
+                break
+
+        with doc.create(pylatex.Section(section.name)):
+            if section.section_type is attack.DocumentSectionType.REFERENCE:
+                with open(section.content, "r") as f:
+                    doc.append(NoEscape(f.read()))
+            elif section.section_type is attack.DocumentSectionType.LITERAL:
+                doc.append(NoEscape(section.content))
+            elif section.section_type is attack.DocumentSectionType.PATTERN:
+                matching = self.get_matching_patterns(document_section_id)
+                to_add = NoEscape(section.content)  # I want a copy of the content string.
+                for match in matching:
+                    if match.behavior is attack.PatternBehavior.ADD:
+                        to_add += NoEscape(match.match_content)
+                    elif match.behavior is attack.PatternBehavior.REPLACE:
+                        to_add = NoEscape(match.match_content)
+                    elif match.behavior is attack.PatternBehavior.REMOVE:
+                        remove_section = True
+                    elif match.behavior is attack.PatternBehavior.END:
+                        raise EndDocumentException()
+                    elif match.behavior is attack.PatternBehavior.ERROR:
+                        raise PatternErrorException()
+                doc.append(to_add)
+            elif section.section_type is attack.DocumentSectionType.COMBINED:
+                pass  # This one is complicated, might work on it later.
+        if remove_section:
+            doc.pop(-1)
+
+    @staticmethod
+    def create_document() -> pylatex.Document:
+        document = pylatex.Document()
+        pkgs = [pylatex.Package("listings")]
+        [document.packages.append(x) for x in pkgs]
+        return document
+
+    def create_section_preview(self, path: str):
+        document = self.create_document()
+        self.create_section(document, self.section)
+        try:
+            document.generate_pdf(path, clean_tex=True)
+        except subprocess.CalledProcessError as e:
+            print(e.stdout, str(e.stderr))
+            raise LatexException()
+
+    def create_report(self, path: str):
+        document = self.create_document()
+        for section in self.atk.document.sections:
+            self.create_section(document, section.section_id)
+        try:
+            document.generate_pdf(path, clean_tex=True)
+        except subprocess.CalledProcessError as e:
+            print(e.stdout, e.stderr)
+            raise LatexException()
+
     def run(self):
         self.signals.change_statusline.emit("Starting.")
         atk_dir = os.path.dirname(os.path.abspath(self.atk_path))
         os.chdir(atk_dir)
-        if self.section >= 0:
-            self.signals.change_statusline.emit(
-                f"Generating preview for section: {self.atk.document.sections[self.section].name}."
-            )
-            docgen.create_section_preview(self.atk, self.section, self.filename)
-        else:
-            self.signals.change_statusline.emit("Generating report.")
-            docgen.create_report(self.atk, self.filename)
+        try:
+            if self.section >= 0:
+                self.signals.change_statusline.emit(
+                    f"Generating preview for section: {self.atk.document.sections[self.section].name}."
+                )
+                self.create_section_preview(self.filename)
+            else:
+                self.signals.change_statusline.emit("Generating report.")
+                self.create_report(self.filename)
+            self.signals.change_statusline.emit("Done.")
+        except LatexException as e:
+            self.signals.change_statusline.emit(e.message)
+        except PatternErrorException as e:
+            self.signals.change_statusline.emit(e.message)
+        except EndDocumentException as e:
+            self.signals.change_statusline.emit(e.message)
         os.chdir(self.app_dir)
-        self.signals.change_statusline.emit("Done.")
         self.signals.finished.emit(self.section)
 
 
@@ -780,6 +882,7 @@ class MainWindow(QMainWindow):
                 QErrorMessage(self).showMessage("Please add at least one document section and select it here.")
             self.gen_button_generate.setDisabled(False)
             self.gen_button_refresh.setDisabled(False)
+
     def gen_generate(self):
         try:
             self.gen_button_generate.setDisabled(True)
@@ -819,7 +922,6 @@ class MainWindow(QMainWindow):
 
 
 if __name__ == "__main__":
-
     app = QApplication(sys.argv)
     window = MainWindow()
     window.app_dir = os.path.dirname(os.path.abspath(__file__))
