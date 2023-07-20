@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>887</width>
-    <height>626</height>
+    <height>648</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,7 +22,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="script_build">
        <attribute name="title">
@@ -59,7 +59,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>180</width>
-                <height>428</height>
+                <height>450</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout">
@@ -435,8 +435,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>180</width>
-                <height>428</height>
+                <width>98</width>
+                <height>91</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -490,7 +490,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>602</width>
+                <width>455</width>
                 <height>826</height>
                </rect>
               </property>
@@ -732,8 +732,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>180</width>
-                   <height>443</height>
+                   <width>98</width>
+                   <height>91</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_12">

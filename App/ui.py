@@ -251,7 +251,7 @@ class DocumentWorker(QRunnable):
                 to_add = NoEscape(section.content)  # I want a copy of the content string.
                 for match in matching:
                     if match.behavior is attack.PatternBehavior.ADD:
-                        to_add += NoEscape(match.match_content)
+                        to_add = NoEscape(to_add + match.match_content)
                     elif match.behavior is attack.PatternBehavior.REPLACE:
                         to_add = NoEscape(match.match_content)
                     elif match.behavior is attack.PatternBehavior.REMOVE:
