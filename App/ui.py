@@ -292,6 +292,7 @@ class DocumentWorker(QRunnable):
             print(e.stdout, e.stderr)
             raise LatexException()
 
+    # noinspection PyUnresolvedReferences
     def run(self):
         self.signals.change_statusline.emit("Starting.")
         atk_dir = os.path.dirname(os.path.abspath(self.atk_path))
@@ -326,6 +327,7 @@ class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # So pycharm doesn't complain...
+        self.pattern_setting = False
         self.gen_pix = None
         self.gen_cur_pic = None
         self.var_old_content = None
@@ -432,6 +434,7 @@ class MainWindow(QMainWindow):
             self.atk = attack.Attack.load(new_path)
             self.atk_path = new_path
             self.script_clear()
+            self.doc_clear()
             for script_section in self.atk.script.sections:
                 self.script_section_add_existing(script_section)
             for doc_section in self.atk.document.sections:
@@ -801,19 +804,27 @@ class MainWindow(QMainWindow):
         current.patterns.pop(pattern_idx)
 
     def pattern_load(self):
+        self.pattern_select.clear()
         current_idx = [self.doc_section_list.row(i) for i in self.doc_section_list.selectedItems()][0]
         current: attack.SectionDocument = self.atk.document.sections[current_idx]
         for pattern in current.patterns:
             self.pattern_select.addItem(pattern.pattern_str)
+        self.pattern_setting = True
         self.pattern_select.setCurrentIndex(0)
+        self.pattern_regex.setText("")
+        self.pattern_content.setText("")
+        self.pattern_behavior.setCurrentIndex(0)
+        self.pattern_read_current()
 
     def pattern_read_current(self):
+        self.pattern_setting = True
         try:
             current_idx = [self.doc_section_list.row(i) for i in self.doc_section_list.selectedItems()][0]
             current: attack.SectionDocument = self.atk.document.sections[current_idx]
             pattern_idx = self.pattern_select.currentIndex()
             self.pattern_regex.setText(current.patterns[pattern_idx].pattern_str)
             self.pattern_content.setText(current.patterns[pattern_idx].match_content)
+            self.pattern_select.setItemText(pattern_idx, current.patterns[pattern_idx].pattern_str)
             if current.patterns[pattern_idx].behavior is attack.PatternBehavior.REPLACE:
                 self.pattern_behavior.setCurrentIndex(0)
             elif current.patterns[pattern_idx].behavior is attack.PatternBehavior.ADD:
@@ -826,8 +837,12 @@ class MainWindow(QMainWindow):
                 self.pattern_behavior.setCurrentIndex(4)
         except IndexError:
             return
+        finally:
+            self.pattern_setting = False
 
     def pattern_set_current(self):
+        if self.pattern_setting:
+            return
         current = None
         try:
             current_idx = [self.doc_section_list.row(i) for i in self.doc_section_list.selectedItems()][0]
@@ -845,13 +860,12 @@ class MainWindow(QMainWindow):
                 current.patterns[pattern_idx].behavior = attack.PatternBehavior.END
             elif self.pattern_behavior.currentIndex() == 4:
                 current.patterns[pattern_idx].behavior = attack.PatternBehavior.ERROR
+            self.pattern_read_current()
         except IndexError:
             if self.atk is None:
                 QErrorMessage(self).showMessage("Please Open or Make an attack first.")
             elif current is None:
                 QErrorMessage(self).showMessage("Please add and select at least one section.")
-            else:
-                QErrorMessage(self).showMessage("Please add and select at least one pattern.")
 
     def gen_load(self):
         self.gen_clear()
