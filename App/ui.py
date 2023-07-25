@@ -228,7 +228,7 @@ class DocumentWorker(QRunnable):
                 doc_section = d_s
                 break
         for pattern in doc_section.patterns:
-            if re.match(pattern.pattern_str, output_section.stdout):
+            if re.search(pattern.pattern_str, output_section.stdout):
                 matching.append(pattern)
         return matching
 
@@ -695,8 +695,11 @@ class MainWindow(QMainWindow):
     def run_set_statusline(self, text: str):
         self.run_statusline.setText(text)
 
-    def run_append_output(self, out: attack.SectionOutput):
-        self.atk.output.sections.append(out)
+    def run_append_output(self, new: attack.SectionOutput):
+        for out_section in self.atk.output.sections:
+            if out_section.section_id == new.section_id:
+                self.atk.output.sections.remove(out_section)
+        self.atk.output.sections.append(new)
 
     def doc_section_add_new(self):
         if self.atk is None:
